@@ -73,7 +73,10 @@ export default function HomePage() {
             case "manual":
               router.push("add-expenses/manual")
               break
-              
+            case "photo":
+              router.push("add-expenses/photo")
+              break
+            
           }
         }}/>
       </div>
