@@ -7,6 +7,8 @@ import { ExpenseRow } from "./components/ExpenseRow";
 import { BottomNav } from "./components/BottomNav";
 import { AddExpenseSheet } from "./components/AddExpenseSheet";
 import { useRouter } from "next/navigation";
+import { useUserStore } from "./stores/user-store";
+import NameEntryPrompt from "./components/NameEntryPrompt";
 
 const activity = [
   {
@@ -37,21 +39,30 @@ export default function HomePage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const router = useRouter();
 
+  const name = useUserStore((state) => state.name);
+  const setName = useUserStore((state) => state.setName);
+
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 pb-4 pt-5">
+      {!name && <NameEntryPrompt onSubmit={setName} />}
+
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl">Hey Alex</h1>
+          <h1 className="text-xl">Hey {name ?? ""}</h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Wednesday, 12 August
           </p>
         </div>
         <div className="flex h-9.5 w-9.5 items-center justify-center rounded-full bg-accent text-[13px] font-semibold text-accent-foreground">
-          A
+          {name ? name[0].toUpperCase() : ""}
         </div>
       </header>
 
-      <BalanceSummaryCard totalOwedToYou={142.5} youOwe={38.0} owedToYou={180.5} />
+      <BalanceSummaryCard
+        totalOwedToYou={142.5}
+        youOwe={38.0}
+        owedToYou={180.5}
+      />
 
       <SegmentedTabs value={tab} onValueChange={setTab} />
 
@@ -67,18 +78,21 @@ export default function HomePage() {
       </div>
 
       <div className="mt-auto pt-4">
-        <BottomNav active="home" onAddExpense={() => setSheetOpen(true)}/>
-        <AddExpenseSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSelectOption={(option) => {
-          switch (option){
-            case "manual":
-              router.push("add-expenses/manual")
-              break
-            case "photo":
-              router.push("add-expenses/photo")
-              break
-            
-          }
-        }}/>
+        <BottomNav active="home" onAddExpense={() => setSheetOpen(true)} />
+        <AddExpenseSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          onSelectOption={(option) => {
+            switch (option) {
+              case "manual":
+                router.push("/add-expenses/manual/bill-details");
+                break;
+              case "photo":
+                router.push("/add-expenses/photo");
+                break;
+            }
+          }}
+        />
       </div>
     </main>
   );
