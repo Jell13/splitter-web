@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { ManualBillState } from "../lib/types";
 
 const initialState = {
     description: "",
@@ -9,7 +10,7 @@ const initialState = {
     guestCount: 1
 }
 
-export const useManualStore = create((
+export const useManualStore = create<ManualBillState>()(
     persist(
         (set) => ({
             ...initialState,
@@ -22,4 +23,4 @@ export const useManualStore = create((
         }),
         { name: "manual-draft-storage"}
     )
-))
+)

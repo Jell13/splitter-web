@@ -1,5 +1,6 @@
-// Static UI only. Values and participant list are placeholders —
-// wire up real data yourself.
+"use client"
+
+import { useManualStore } from "@/app/stores/manual-bill";
 
 const participants = [
   { id: "you", initials: "AL" },
@@ -8,7 +9,16 @@ const participants = [
   { id: "tl", initials: "TL" },
 ];
 
-export function ManualReview() {
+export default function ManualReview() {
+
+  const subtotal = useManualStore((state) => state.subtotal);
+  const tax = useManualStore((state) => state.tax);
+  const tip = useManualStore((state) => state.tip);
+
+  const guestCount = useManualStore((state) => state.guestCount);
+
+  const total = subtotal + tax + tip;
+  const perPerson = total / guestCount;
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="px-5 pt-2">
@@ -23,19 +33,19 @@ export function ManualReview() {
           <div className="flex items-center justify-between py-2">
             <span className="text-sm text-muted-foreground">Subtotal</span>
             <span className="tabular-amount text-sm text-foreground">
-              $181.00
+              ${subtotal}
             </span>
           </div>
           <div className="flex items-center justify-between border-t border-border py-2">
             <span className="text-sm text-muted-foreground">Tax</span>
             <span className="tabular-amount text-sm text-foreground">
-              $10.86
+              ${tax}
             </span>
           </div>
           <div className="flex items-center justify-between border-t border-border py-2">
             <span className="text-sm text-muted-foreground">Tip</span>
             <span className="tabular-amount text-sm text-foreground">
-              $28.78
+              ${tip}
             </span>
           </div>
         </div>
@@ -46,25 +56,19 @@ export function ManualReview() {
               Total
             </span>
             <span className="tabular-amount text-[26px] text-primary-foreground">
-              $220.64
+              ${total.toFixed(2)}
             </span>
           </div>
         </div>
 
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Splitting with
+        <div className="rounded-card bg-card p-4 text-center">
+          <p className="text-sm text-foreground">
+            Split evenly among <span className="font-semibold">{guestCount}</span>{" "}
+            {guestCount === 1 ? "person" : "people"}
           </p>
-          <div className="flex gap-2">
-            {participants.map((person) => (
-              <span
-                key={person.id}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground"
-              >
-                {person.initials}
-              </span>
-            ))}
-          </div>
+          <p className="tabular-amount mt-1 text-xs text-muted-foreground">
+            ${perPerson.toFixed(2)} each
+          </p>
         </div>
       </div>
 
