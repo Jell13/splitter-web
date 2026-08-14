@@ -16,7 +16,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Splitwise-style app",
+  title: "Split-it",
   description: "Split bills with friends, without the headache.",
 };
 
