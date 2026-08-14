@@ -1,7 +1,7 @@
 "use client";
 import { useManualStore } from "@/app/stores/manual-bill";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function BillDetailsPage() {
   const router = useRouter();
@@ -34,6 +34,17 @@ export default function BillDetailsPage() {
 
     setUserInput({ ...userInput, tip: percentage.toFixed(2) });
   };
+
+  useEffect(() => {
+    if (description && tax && tip && subtotal){
+      setUserInput({
+        description,
+        tax,
+        tip,
+        subtotal
+      })
+    }
+  }, [])
 
   const tipButtonClass = (percent: number) =>
     `flex-1 rounded-control py-2.5 text-sm font-semibold ${

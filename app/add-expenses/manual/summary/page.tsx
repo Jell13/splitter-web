@@ -1,56 +1,99 @@
-// Static UI only. Amounts are placeholders — wire up the real
-// even-split calculation (total / guest count) yourself.
+"use client";
 
-const shares = [
-  { id: "jm", initials: "JM", name: "Jamie" },
-  { id: "sk", initials: "SK", name: "Sara" },
-  { id: "tl", initials: "TL", name: "Tom" },
-];
+import { IconCheck } from "@tabler/icons-react";
+import { useManualStore } from "@/app/stores/manual-bill";
+import { useRouter } from "next/navigation";
 
-export function ManualSummary() {
+export default function ManualSummary() {
+
+  const router = useRouter();
+
+  const subtotal = useManualStore((state) => state.subtotal);
+  const tax = useManualStore((state) => state.tax);
+  const tip = useManualStore((state) => state.tip);
+  const guestCount = useManualStore((state) => state.guestCount);
+  const description = useManualStore((state) => state.description);
+  const reset = useManualStore((state) => state.reset);
+
+  const handleFinish = () => {
+    reset();
+    router.push("/")
+  };
+
+  const total = subtotal + tax + tip;
+  const perPerson = total / guestCount;
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="px-5 pt-2">
         <h1 className="text-[18px]">Summary</h1>
-        <p className="mt-1 text-[13px] text-muted-foreground">
-          Step 4 of 4
-        </p>
+        <p className="mt-1 text-[13px] text-muted-foreground">Step 4 of 4</p>
       </div>
 
       <div className="flex flex-col items-center px-5 pt-8">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-lg font-semibold text-primary-dark">
-          AL
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success-soft text-success-foreground">
+          <IconCheck size={26} stroke={2} />
         </span>
-        <p className="mt-3 text-sm font-medium text-foreground">You paid</p>
-        <p className="tabular-amount mt-1 text-[32px] text-foreground">
-          $220.64
+        <p className="mt-4 text-[17px] font-semibold text-muted-foreground">
+          Split complete
         </p>
+        {description && (
+          <p className="mt-1 text-2xl font-bold text-foreground">{description}</p>
+        )}
       </div>
 
-      <div className="flex flex-col gap-2 px-5 pt-8">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Each owes you
-        </p>
-        {shares.map((person) => (
-          <div
-            key={person.id}
-            className="flex items-center gap-3 rounded-card bg-card px-4 py-3"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
-              {person.initials}
+      <div className="flex flex-col gap-4 px-5 pt-8">
+        <div className="rounded-card bg-primary px-5 py-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-primary-foreground/80">
+              Total paid
             </span>
-            <span className="flex-1 text-sm text-foreground">
-              {person.name}
-            </span>
-            <span className="tabular-amount rounded-full bg-success-soft px-2.5 py-1.5 text-xs text-success-foreground">
-              $55.16
+            <span className="tabular-amount text-[26px] text-primary-foreground">
+              ${total.toFixed(2)}
             </span>
           </div>
-        ))}
+        </div>
+
+        <div className="rounded-card bg-card p-4 text-center">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Each person owes
+          </p>
+          <p className="tabular-amount mt-1 text-[28px] text-foreground">
+            ${perPerson.toFixed(2)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Split evenly among {guestCount}{" "}
+            {guestCount === 1 ? "person" : "people"}
+          </p>
+        </div>
+
+        <div className="rounded-card bg-card p-4">
+          <div className="flex items-center justify-between py-1.5">
+            <span className="text-xs text-muted-foreground">Subtotal</span>
+            <span className="tabular-amount text-xs text-foreground">
+              ${subtotal.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between border-t border-border py-1.5">
+            <span className="text-xs text-muted-foreground">Tax</span>
+            <span className="tabular-amount text-xs text-foreground">
+              ${tax.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between border-t border-border py-1.5">
+            <span className="text-xs text-muted-foreground">Tip</span>
+            <span className="tabular-amount text-xs text-foreground">
+              ${tip.toFixed(2)}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="mt-auto px-5 pb-8 pt-6">
-        <button className="w-full rounded-control bg-primary py-3.5 text-sm font-semibold text-primary-foreground">
+        <button
+          onClick={() => handleFinish()}
+          className="w-full rounded-control bg-primary py-3.5 text-sm font-semibold text-primary-foreground"
+        >
           Done
         </button>
       </div>

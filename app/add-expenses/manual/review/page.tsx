@@ -1,6 +1,7 @@
 "use client"
 
 import { useManualStore } from "@/app/stores/manual-bill";
+import { useRouter } from "next/navigation";
 
 const participants = [
   { id: "you", initials: "AL" },
@@ -11,14 +12,20 @@ const participants = [
 
 export default function ManualReview() {
 
+  const router = useRouter();
   const subtotal = useManualStore((state) => state.subtotal);
   const tax = useManualStore((state) => state.tax);
   const tip = useManualStore((state) => state.tip);
 
   const guestCount = useManualStore((state) => state.guestCount);
+  const reset = useManualStore((state) => state.reset)
 
   const total = subtotal + tax + tip;
   const perPerson = total / guestCount;
+
+  const handleConfirm = () => {
+    router.push("summary")
+  }
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="px-5 pt-2">
@@ -73,7 +80,7 @@ export default function ManualReview() {
       </div>
 
       <div className="px-5 pb-8 pt-6">
-        <button className="w-full rounded-control bg-primary py-3.5 text-sm font-semibold text-primary-foreground">
+        <button onClick={() => handleConfirm()} className="w-full rounded-control bg-primary py-3.5 text-sm font-semibold text-primary-foreground">
           Confirm
         </button>
       </div>
