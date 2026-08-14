@@ -1,17 +1,19 @@
 "use client";
 import { useManualStore } from "@/app/stores/manual-bill";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function BillDetailsPage() {
   const router = useRouter();
   const [selectedTip, setSelectedTip] = useState<number | null>(null);
+  const [custom, setCustom] = useState<boolean>(false);
   const [userInput, setUserInput] = useState<any>({
     description: "",
     subtotal: "",
     tip: "",
     tax: "",
   });
+  const customInputRef = useRef<any>(null);
 
   const description = useManualStore((state) => state.description);
   const setDescription = useManualStore((state) => state.setDescription);
@@ -30,7 +32,7 @@ export default function BillDetailsPage() {
     const percentage = (subtotal * percent) / 100;
     console.log(percentage);
 
-    setUserInput({ ...userInput, tip: percentage });
+    setUserInput({ ...userInput, tip: percentage.toFixed(2) });
   };
 
   const tipButtonClass = (percent: number) =>
@@ -40,13 +42,22 @@ export default function BillDetailsPage() {
         : "bg-accent text-accent-foreground"
     }`;
 
-  const handleClick = () => {
+  const customButtonClass = () => 
+    `flex-1 rounded-control ${custom ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"} py-2.5 text-sm font-semibold`;
 
+  const handleClick = () => {
     setSubtotal(Number(userInput.subtotal) || 0);
     setTip(Number(userInput.tip) || 0);
     setTax(Number(userInput.tax) || 0);
-    setDescription(userInput.description || "")
+    setDescription(userInput.description || "");
     router.push("/add-expenses/manual/guest-count");
+  };
+
+  const handleCustomTip = () => {
+    if (customInputRef.current != null) {
+      setCustom(true);
+      customInputRef.current.focus();
+    }
   };
 
   const total =
@@ -135,7 +146,10 @@ export default function BillDetailsPage() {
             >
               20%
             </button>
-            <button className="flex-1 rounded-control bg-accent py-2.5 text-sm font-semibold text-accent-foreground">
+            <button
+              onClick={() => handleCustomTip()}
+              className={customButtonClass()}
+            >
               Custom
             </button>
           </div>
@@ -144,6 +158,7 @@ export default function BillDetailsPage() {
             <input
               type="text"
               value={userInput.tip}
+              ref={customInputRef}
               onChange={(e) =>
                 setUserInput({ ...userInput, tip: e.target.value })
               }

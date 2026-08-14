@@ -39,8 +39,29 @@ export default function HomePage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const router = useRouter();
 
+  function getFormattedDate(date: Date): string {
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      throw new Error("Invalid Date object provided.");
+    }
+
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    };
+
+    return new Intl.DateTimeFormat("en-US", options).format(date);
+  }
+
   const name = useUserStore((state) => state.name);
   const setName = useUserStore((state) => state.setName);
+
+  const today = new Date();
+  const formatted = getFormattedDate(today);
+  let day = today.getDate(); // Day of the month (1-31)
+  let month = today.getMonth() + 1; // Month (0-11) → +1 to make it 1-12
+  let year = today.getFullYear();
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 pb-4 pt-5">
@@ -50,7 +71,7 @@ export default function HomePage() {
         <div>
           <h1 className="text-xl">Hey {name ?? ""}</h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Wednesday, 12 August
+            {formatted}
           </p>
         </div>
         <div className="flex h-9.5 w-9.5 items-center justify-center rounded-full bg-accent text-[13px] font-semibold text-accent-foreground">
