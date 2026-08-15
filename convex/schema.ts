@@ -7,7 +7,7 @@ export default defineSchema({
         isGuest: v.boolean(),
         name: v.string(),
         email: v.string(),
-    }),
+    }).index("by_userId", ["userId"]),
     
     splits: defineTable({
         createdByUserId: v.id("users"),
@@ -32,5 +32,12 @@ export default defineSchema({
         amountOwed: v.number(),
         hasPaid: v.number()
     }).index("by_split", ["splitId"])
-    .index("by_user", ["userId"])
+    .index("by_user", ["userId"]),
+
+    receiptImages: defineTable({
+        url: v.string(),
+        uploadedAt: v.number(),
+        uploadedByUserId: v.optional(v.id("users"))
+    })
+    
 })

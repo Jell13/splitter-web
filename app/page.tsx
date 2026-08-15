@@ -109,7 +109,7 @@ export default function HomePage() {
                 router.push("/add-expenses/manual/bill-details");
                 break;
               case "photo":
-                router.push("/add-expenses/photo");
+                router.push("/add-expenses/photo/confirm");
                 break;
             }
           }}
