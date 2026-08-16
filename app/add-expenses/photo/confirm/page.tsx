@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconPhoto, IconRefresh, IconReceipt } from "@tabler/icons-react";
+import { useAction, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { usePhotoStore } from "@/app/stores/photo-upload";
 
 // TODO: replace local blob preview with a real upload to Convex
 // storage, and store the resulting URL in usePhotoStore instead of
@@ -12,12 +15,20 @@ export default function PhotoConfirmPage() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [isScanning, setIsScanning] = useState(false);
 
+  const generateUploadUrl = useMutation(api.split.generateUploadUrl);
+  const saveReceiptImage = useMutation(api.split.saveReceiptImage);
+  const parseReceipt = useAction(api.receipts.parseReceipt);
+
+  const setImageUrl = usePhotoStore((state) => state.setImageUrl);
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return; // they cancelled the picker, stay on this screen
-    setPreviewUrl(URL.createObjectURL(file));
+    const selected = e.target.files?.[0];
+    if (!selected) return; // they cancelled the picker, stay on this screen
+    setFile(selected);
+    setPreviewUrl(URL.createObjectURL(selected));
   }
 
   function handlePickPhoto() {
@@ -30,12 +41,34 @@ export default function PhotoConfirmPage() {
     inputRef.current?.click();
   }
 
-  function handleUsePhoto() {
+  const handleUsePhoto = async () => {
+
+    if (!file){
+      return
+    }
     setIsScanning(true);
     // TODO: replace with your real useAction(api.receipts.extractReceiptItems) call
-    setTimeout(() => {
-      router.push("/add-expense/photo/review");
-    }, 1500);
+    try{
+      const postUrl = await generateUploadUrl()
+
+      const result = await fetch(postUrl, {
+        method: "POST",
+        headers: {"Content-type": file.type},
+        body: file
+      })
+      const { storageId } = await result.json();
+
+      const { url } = await saveReceiptImage({storageId: storageId});
+      setImageUrl(url)
+
+      const parsed = await parseReceipt({imageUrl: url})
+
+    } catch(error){
+      console.log("Error:", error)
+    }
+    // setTimeout(() => {
+    //   router.push("/add-expense/photo/review");
+    // }, 1500);
   }
 
   return (

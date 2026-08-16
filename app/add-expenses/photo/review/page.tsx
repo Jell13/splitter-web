@@ -1,5 +1,6 @@
 "use client";
 
+import { usePhotoStore } from "@/app/stores/photo-upload";
 import { useRouter } from "next/navigation";
 
 // Static placeholder data standing in for what your OCR action
@@ -25,6 +26,8 @@ const total = subtotal + tax + tip;
 export default function PhotoReviewPage() {
   const router = useRouter();
 
+
+  const imageUrl = usePhotoStore((state) => state.imageUrl);
   const handleContinue = () => {
     router.push("/add-expense/photo/assign-items");
   };

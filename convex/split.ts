@@ -37,3 +37,4 @@ export const saveReceiptImage = mutation({
     return { receiptImageId, url };
   },
 });
+
