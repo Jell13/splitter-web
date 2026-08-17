@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useConvexAuth } from "convex/react";
+import { usePhotoStore } from "@/app/stores/photo-upload";
 
 // Static placeholder data. TODO: derive these per-person amounts from
 // your real item assignments (each person's assigned item prices,
@@ -18,15 +19,43 @@ const total = 220.64;
 
 export default function FinalReviewPage() {
   const router = useRouter();
-  const { isAuthenticated } = useConvexAuth();
+  //   const { isAuthenticated } = useConvexAuth();
+
+  const subtotal = usePhotoStore((state) => state.subtotal);
+  const items = usePhotoStore((state) => state.items);
+  const participants = usePhotoStore((state) => state.participants);
+  const tax = usePhotoStore((state) => state.tax);
+  const tip = usePhotoStore((state) => state.tip);
+
+  const personSubtotal: Record<string, number> = {};
+  participants.forEach((person) => (personSubtotal[person.localId] = 0));
+
+  items.forEach((item) => {
+    const assignedCount = item.assignedUserIds.length;
+    if (assignedCount === 0) return;
+    const perPersonPrice = item.price / assignedCount;
+    item.assignedUserIds.forEach((localId) => {
+      personSubtotal[localId] =
+        (personSubtotal[localId] || 0) + perPersonPrice;
+    });
+  });
+
+  const shared = participants.map((p) => {
+    const perPersonTotal = personSubtotal[p.localId];
+    const proportionalTaxTip = (perPersonTotal / subtotal) * (tax + tip);
+    return {
+      ...p,
+      amount: perPersonTotal + proportionalTaxTip,
+    };
+  });
 
   const handleConfirm = async () => {
-    if (isAuthenticated) {
-      // TODO: call your create-split mutation here — receiptImageId,
-      // items, and resolved participant shares (turning each
-      // participant's localId into a real Convex user id, creating
-      // lightweight guest users for anyone who isn't isSelf/existing).
-    }
+    // if (isAuthenticated) {
+    // TODO: call your create-split mutation here — receiptImageId,
+    // items, and resolved participant shares (turning each
+    // participant's localId into a real Convex user id, creating
+    // lightweight guest users for anyone who isn't isSelf/existing).
+    // }
     // Guests skip the mutation entirely — nothing gets persisted
     // except the receipt image, which was already saved on upload.
     router.push("/add-expense/photo/summary");
@@ -48,15 +77,15 @@ export default function FinalReviewPage() {
               Total
             </span>
             <span className="tabular-amount text-[30px] text-primary-foreground">
-              ${total.toFixed(2)}
+              ${subtotal.toFixed(2)}
             </span>
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          {shares.map((person) => (
+          {shared.map((person, i) => (
             <div
-              key={person.id}
+              key={i}
               className="flex items-center gap-3 rounded-card bg-card px-4 py-3"
             >
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
