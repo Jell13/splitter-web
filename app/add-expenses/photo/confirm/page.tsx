@@ -1,14 +1,17 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { IconPhoto, IconRefresh, IconReceipt } from "@tabler/icons-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { IconPhoto, IconCamera, IconRefresh, IconReceipt } from "@tabler/icons-react";
 import { useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { usePhotoStore } from "@/app/stores/photo-upload";
 
 export default function PhotoConfirmPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isCameraMode = searchParams.get("source") === "camera";
+
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -90,12 +93,13 @@ export default function PhotoConfirmPage() {
         ref={inputRef}
         type="file"
         accept="image/*"
+        capture={isCameraMode ? "environment" : undefined}
         hidden
         onChange={handleFileChange}
       />
 
       <div className="px-5 pt-2">
-        <h1 className="text-xl">Photo</h1>
+        <h1 className="text-xl">{isCameraMode ? "Scan" : "Photo"}</h1>
       </div>
 
       <div className="flex flex-1 flex-col px-5 pt-6">
@@ -110,8 +114,14 @@ export default function PhotoConfirmPage() {
             onClick={handlePickPhoto}
             className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-card border border-dashed border-border bg-card text-muted-foreground"
           >
-            <IconPhoto size={32} stroke={1.5} />
-            <span className="text-sm">Tap to choose a photo</span>
+            {isCameraMode ? (
+              <IconCamera size={32} stroke={1.5} />
+            ) : (
+              <IconPhoto size={32} stroke={1.5} />
+            )}
+            <span className="text-sm">
+              {isCameraMode ? "Tap to take a photo" : "Tap to choose a photo"}
+            </span>
           </button>
         )}
 
@@ -122,7 +132,7 @@ export default function PhotoConfirmPage() {
             className="mt-4 flex items-center justify-center gap-2 self-center text-base font-medium text-primary disabled:opacity-40"
           >
             <IconRefresh size={17} stroke={1.75} />
-            Choose a different photo
+            {isCameraMode ? "Retake" : "Choose a different photo"}
           </button>
         )}
       </div>

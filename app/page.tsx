@@ -70,9 +70,7 @@ export default function HomePage() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-xl">Hey {name ?? ""}</h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {formatted}
-          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{formatted}</p>
         </div>
         <div className="flex h-9.5 w-9.5 items-center justify-center rounded-full bg-accent text-[13px] font-semibold text-accent-foreground">
           {name ? name[0].toUpperCase() : ""}
@@ -108,8 +106,11 @@ export default function HomePage() {
               case "manual":
                 router.push("/add-expenses/manual/bill-details");
                 break;
+              case "scan":
+                router.push("/add-expenses/photo/confirm?source=camera");
+                break;
               case "photo":
-                router.push("/add-expenses/photo/confirm");
+                router.push("/add-expenses/photo/confirm?source=gallery");
                 break;
             }
           }}
