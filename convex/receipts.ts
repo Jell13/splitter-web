@@ -40,7 +40,7 @@ Rules:
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1-nano",
         messages: [
           {
             role: "user",
@@ -53,6 +53,7 @@ Rules:
             ],
           },
         ],
+        response_format: {type: "json_object"}
       }),
     });
 
@@ -61,7 +62,6 @@ Rules:
     }
 
     const json = await response.json();
-    console.log(json.choices[0].message.content);
     return JSON.parse(json.choices[0].message.content);
   },
 });

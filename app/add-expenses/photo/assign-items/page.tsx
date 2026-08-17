@@ -1,6 +1,8 @@
 "use client";
 
+import { usePhotoStore } from "@/app/stores/photo-upload";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 // Static placeholder data. TODO: read real items from your scan
 // result, real people from your split-participants store, and wire
@@ -22,17 +24,36 @@ const people = [
   { id: "sk", initials: "SK" },
 ];
 
-const subtotal = 181.0;
-const tax = 10.86;
-const tip = 28.78;
-const total = subtotal + tax + tip;
-
 export default function AssignItemsPage() {
   const router = useRouter();
 
+  const description = usePhotoStore((state) => state.description);
+  const tax = usePhotoStore((state) => state.tax);
+  const tip = usePhotoStore((state) => state.tip);
+  const items = usePhotoStore((state) => state.items);
+  const subtotal = usePhotoStore((state) => state.subtotal);
+  const hasHydrated = usePhotoStore((state) => state.hasHydrated);
+
+  const [editableItems, setEditableItems] = useState(items);
+
+  const setItems = usePhotoStore((state) => state.setItems);
+  const setHasHydrated = usePhotoStore((state) => state.setHasHydrated);
+
   const handleContinue = () => {
-    router.push("/add-expense/photo/final-review");
+    router.push("/add-expenses/photo/final-review");
   };
+
+  useEffect(() => {
+    if (hasHydrated){
+      setEditableItems(items);
+    }
+  }, [hasHydrated])
+
+  if (!hasHydrated){
+    return null;
+  }
+
+  const total = subtotal + tax + tip;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -44,28 +65,7 @@ export default function AssignItemsPage() {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 px-5 pt-6">
-        {items.map((item) => (
-          <button
-            key={item.name}
-            className="flex items-center gap-3 rounded-card bg-card p-3.5 text-left"
-          >
-            <span
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                item.assignedTo
-                  ? "bg-accent text-accent-foreground"
-                  : "border border-dashed border-border text-muted-foreground"
-              }`}
-            >
-              {item.assignedTo ?? "+"}
-            </span>
-            <span className="flex-1 text-sm text-foreground">
-              {item.name}
-            </span>
-            <span className="tabular-amount text-sm text-foreground">
-              ${item.price.toFixed(2)}
-            </span>
-          </button>
-        ))}
+        
 
         <div className="mt-2 rounded-card bg-card p-4">
           <div className="flex items-center justify-between py-1.5">

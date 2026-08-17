@@ -51,7 +51,10 @@ export interface PhotoBillState{
     guestCount: number;
     items: ReceiptItems[];
     participants: Participant[];
+    hasHydrated: boolean;
+    setHasHydrated: (val: boolean) => void;
     setSubtotal: (subtotal : number) => void;
+    setItems: (item : ReceiptItems[]) => void;
     setDescription: (description : string) => void;
     setImageUrl: (imageUrl : string) => void;
     setTip: (tip : number) => void;

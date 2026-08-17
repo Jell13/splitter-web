@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Participant, PhotoBillState } from "../lib/types";
+import { Participant, PhotoBillState, ReceiptItems } from "../lib/types";
 
 const initialState = {
   description: "",
@@ -17,12 +17,15 @@ export const usePhotoStore = create<PhotoBillState>()(
   persist(
     (set) => ({
       ...initialState,
+      hasHydrated: false,
+      setHasHydrated: (val) => set({ hasHydrated: val }),
       setDescription: (val: string) => set({ description: val }),
       setSubtotal: (val: number) => set({ subtotal: val }),
       setTip: (val: number) => set({ tip: val }),
       setTax: (val: number) => set({ tax: val }),
       setImageUrl: (val: string) => set({ imageUrl: val }),
       setGuestCount: (val: number) => set({ guestCount: val }),
+      setItems: (items: ReceiptItems[]) => set({ items }),
       reset: () => set(initialState),
       addParticipant: (name: string, initials: string) =>
         set((state) => {
@@ -47,6 +50,11 @@ export const usePhotoStore = create<PhotoBillState>()(
           ),
         })),
     }),
-    { name: "photo-store" },
+    {
+      name: "photo-store",
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+    },
   ),
 );

@@ -23,6 +23,11 @@ export default function PhotoConfirmPage() {
   const parseReceipt = useAction(api.receipts.parseReceipt);
 
   const setImageUrl = usePhotoStore((state) => state.setImageUrl);
+  const setDescription = usePhotoStore((state) => state.setDescription);
+  const setSubtotal = usePhotoStore((state) => state.setSubtotal);
+  const setTip = usePhotoStore((state) => state.setTip);
+  const setTax = usePhotoStore((state) => state.setTax);
+  const setItems = usePhotoStore((state) => state.setItems);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
@@ -63,12 +68,28 @@ export default function PhotoConfirmPage() {
 
       const parsed = await parseReceipt({imageUrl: url})
 
+      setDescription(parsed.description)
+      setSubtotal(parsed.subtotal);
+      setTax(parsed.tax);
+      setTip(parsed.tip);
+
+      const parsedItems = parsed.items.map((item : { name: string, price: number}) => {
+        const newItem = {
+          id: crypto.randomUUID(),
+          name: item.name,
+          price: Number(item.price),
+          assignedUserIds: []
+        }
+
+        return newItem
+      })
+      setItems(parsed.items)
+
     } catch(error){
       console.log("Error:", error)
+    } finally {
+      router.push("/add-expenses/photo/review")
     }
-    // setTimeout(() => {
-    //   router.push("/add-expense/photo/review");
-    // }, 1500);
   }
 
   return (
