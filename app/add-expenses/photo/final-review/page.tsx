@@ -27,6 +27,8 @@ export default function FinalReviewPage() {
   const tax = usePhotoStore((state) => state.tax);
   const tip = usePhotoStore((state) => state.tip);
 
+  const reset = usePhotoStore((state) => state.reset);
+
   const personSubtotal: Record<string, number> = {};
   participants.forEach((person) => (personSubtotal[person.localId] = 0));
 
@@ -58,6 +60,7 @@ export default function FinalReviewPage() {
     // }
     // Guests skip the mutation entirely — nothing gets persisted
     // except the receipt image, which was already saved on upload.
+    reset();
     router.push("/add-expense/photo/summary");
   };
 
