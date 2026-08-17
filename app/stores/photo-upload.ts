@@ -49,6 +49,35 @@ export const usePhotoStore = create<PhotoBillState>()(
                 },
           ),
         })),
+      ensureSelfParticipant: (name: string, initials: string) =>
+        set((state) => {
+          if (state.participants.some((p) => p.isSelf)) {
+            return state; // already added, no-op
+          }
+          const newParticipant: Participant = {
+            localId: crypto.randomUUID(),
+            name,
+            initials,
+            isSelf: true,
+          };
+          return { participants: [...state.participants, newParticipant] };
+        }),
+      removeParticipant: (localId: string) =>
+        set((state) => {
+          const person = state.participants.find((p) => p.localId === localId);
+          if (person?.isSelf) return state; // never remove yourself
+
+          const isAssignedAnywhere = state.items.some((item) =>
+            item.assignedUserIds.includes(localId),
+          );
+          if (isAssignedAnywhere) return state; // refuse — still in use
+
+          return {
+            participants: state.participants.filter(
+              (p) => p.localId !== localId,
+            ),
+          };
+        }),
     }),
     {
       name: "photo-store",

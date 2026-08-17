@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconPhoto, IconRefresh, IconReceipt } from "@tabler/icons-react";
 import { useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { usePhotoStore } from "@/app/stores/photo-upload";
-
-// TODO: replace local blob preview with a real upload to Convex
-// storage, and store the resulting URL in usePhotoStore instead of
-// local previewUrl state.
 
 export default function PhotoConfirmPage() {
   const router = useRouter();
@@ -31,7 +27,7 @@ export default function PhotoConfirmPage() {
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
-    if (!selected) return; // they cancelled the picker, stay on this screen
+    if (!selected) return;
     setFile(selected);
     setPreviewUrl(URL.createObjectURL(selected));
   }
@@ -47,50 +43,46 @@ export default function PhotoConfirmPage() {
   }
 
   const handleUsePhoto = async () => {
-
-    if (!file){
-      return
+    if (!file) {
+      return;
     }
     setIsScanning(true);
-    // TODO: replace with your real useAction(api.receipts.extractReceiptItems) call
-    try{
-      const postUrl = await generateUploadUrl()
+
+    try {
+      const postUrl = await generateUploadUrl();
 
       const result = await fetch(postUrl, {
         method: "POST",
-        headers: {"Content-type": file.type},
-        body: file
-      })
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
       const { storageId } = await result.json();
 
-      const { url } = await saveReceiptImage({storageId: storageId});
-      setImageUrl(url)
+      const { url } = await saveReceiptImage({ storageId });
+      setImageUrl(url);
 
-      const parsed = await parseReceipt({imageUrl: url})
+      const parsed = await parseReceipt({ imageUrl: url });
 
-      setDescription(parsed.description)
+      setDescription(parsed.description);
       setSubtotal(parsed.subtotal);
       setTax(parsed.tax);
       setTip(parsed.tip);
 
-      const parsedItems = parsed.items.map((item : { name: string, price: number}) => {
-        const newItem = {
-          id: crypto.randomUUID(),
-          name: item.name,
-          price: Number(item.price),
-          assignedUserIds: []
-        }
+      const parsedItems = parsed.items.map((item: { name: string; price: number }) => ({
+        id: crypto.randomUUID(),
+        name: item.name,
+        price: Number(item.price),
+        assignedUserIds: [],
+      }));
+      setItems(parsedItems);
 
-        return newItem
-      })
-      setItems(parsed.items)
-
-    } catch(error){
-      console.log("Error:", error)
-    } finally {
-      router.push("/add-expenses/photo/review")
+      router.push("/add-expense/photo/review");
+    } catch (error) {
+      console.log("Error:", error);
+      setIsScanning(false);
+      // TODO: show an actual error state instead of just logging
     }
-  }
+  };
 
   return (
     <div className="relative flex min-h-screen flex-col bg-background">
@@ -103,7 +95,7 @@ export default function PhotoConfirmPage() {
       />
 
       <div className="px-5 pt-2">
-        <h1 className="text-[18px]">Photo</h1>
+        <h1 className="text-xl">Photo</h1>
       </div>
 
       <div className="flex flex-1 flex-col px-5 pt-6">
@@ -119,7 +111,7 @@ export default function PhotoConfirmPage() {
             className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-card border border-dashed border-border bg-card text-muted-foreground"
           >
             <IconPhoto size={32} stroke={1.5} />
-            <span className="text-xs">Tap to choose a photo</span>
+            <span className="text-sm">Tap to choose a photo</span>
           </button>
         )}
 
@@ -127,9 +119,9 @@ export default function PhotoConfirmPage() {
           <button
             onClick={handleRetry}
             disabled={isScanning}
-            className="mt-4 flex items-center justify-center gap-2 self-center text-sm font-medium text-primary disabled:opacity-40"
+            className="mt-4 flex items-center justify-center gap-2 self-center text-base font-medium text-primary disabled:opacity-40"
           >
-            <IconRefresh size={15} stroke={1.75} />
+            <IconRefresh size={17} stroke={1.75} />
             Choose a different photo
           </button>
         )}
@@ -139,7 +131,7 @@ export default function PhotoConfirmPage() {
         <button
           onClick={handleUsePhoto}
           disabled={!previewUrl || isScanning}
-          className="w-full rounded-control bg-primary py-3.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+          className="w-full rounded-control bg-primary py-3.5 text-base font-semibold text-primary-foreground disabled:opacity-60"
         >
           Use this photo
         </button>
@@ -150,10 +142,10 @@ export default function PhotoConfirmPage() {
           <span className="flex h-14 w-14 animate-pulse items-center justify-center rounded-full bg-primary-soft text-primary-dark">
             <IconReceipt size={26} stroke={1.75} />
           </span>
-          <p className="text-sm font-medium text-foreground">
+          <p className="text-base font-medium text-foreground">
             Scanning your receipt...
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             This usually takes a few seconds
           </p>
         </div>

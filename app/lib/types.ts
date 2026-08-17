@@ -32,6 +32,7 @@ export interface Participant{
     convexId?: string;
     initials: string;
     name: string;
+    isSelf?: boolean;
 }
 
 export interface ReceiptItems{
@@ -62,5 +63,7 @@ export interface PhotoBillState{
     setGuestCount: (guestCount: number) => void;
     addParticipant: (name: string, initials: string) => void;
     toggleItemAssignment: (itemId: string, name: string) => void;
+    ensureSelfParticipant: (name: string, initials: string) => void;
+    removeParticipant: (localId: string) => void;
     reset: () => void;
 }
