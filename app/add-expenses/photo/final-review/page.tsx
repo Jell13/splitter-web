@@ -63,6 +63,8 @@ export default function FinalReviewPage() {
     router.push("/add-expenses/photo/summary");
   };
 
+  const total = subtotal + tax + tip;
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="px-5 pt-2">
@@ -79,7 +81,7 @@ export default function FinalReviewPage() {
               Total
             </span>
             <span className="tabular-amount text-[30px] text-primary-foreground">
-              ${subtotal.toFixed(2)}
+              ${total.toFixed(2)}
             </span>
           </div>
         </div>
