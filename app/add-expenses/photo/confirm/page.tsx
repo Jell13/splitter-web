@@ -165,12 +165,12 @@ export default function PhotoConfirmPage() {
           <img
             src={previewUrl}
             alt="Selected receipt"
-            className="aspect-[3/4] w-full rounded-card object-cover"
+            className="aspect-3/4 w-full rounded-card object-cover"
           />
         ) : (
           <button
             onClick={handlePickPhoto}
-            className="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-card border border-dashed border-border bg-card text-muted-foreground"
+            className="flex aspect-3/4 w-full flex-col items-center justify-center gap-2 rounded-card border border-dashed border-border bg-card text-muted-foreground"
           >
             {isCameraMode ? (
               <IconCamera size={32} stroke={1.5} />
