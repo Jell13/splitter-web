@@ -60,8 +60,7 @@ export default function FinalReviewPage() {
     // }
     // Guests skip the mutation entirely — nothing gets persisted
     // except the receipt image, which was already saved on upload.
-    reset();
-    router.push("/add-expense/photo/summary");
+    router.push("/add-expenses/photo/summary");
   };
 
   return (

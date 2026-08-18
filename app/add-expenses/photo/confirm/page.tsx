@@ -79,7 +79,7 @@ export default function PhotoConfirmPage() {
       }));
       setItems(parsedItems);
 
-      router.push("/add-expense/photo/review");
+      router.push("/add-expenses/photo/review");
     } catch (error) {
       console.log("Error:", error);
       setIsScanning(false);
