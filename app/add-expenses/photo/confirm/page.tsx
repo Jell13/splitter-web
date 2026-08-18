@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   IconPhoto,
@@ -13,7 +13,7 @@ import { api } from "@/convex/_generated/api";
 import { usePhotoStore } from "@/app/stores/photo-upload";
 import { toast } from "sonner";
 
-export default function PhotoConfirmPage() {
+function PhotoConfirmPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isCameraMode = searchParams.get("source") === "camera";
@@ -81,7 +81,6 @@ export default function PhotoConfirmPage() {
       try {
         selected = await convertHeicToJpeg(selected);
       } catch {
-        // couldn't convert — TODO: show an error, don't silently proceed with an unusable file
         toast.error("Couldn't process that photo — try a different one");
         return;
       }
@@ -139,9 +138,9 @@ export default function PhotoConfirmPage() {
 
       router.push("/add-expenses/photo/review");
     } catch (error) {
-      console.log("Error:", error);
+      console.error("Error:", error);
+      toast.error("Couldn't scan that receipt — try again");
       setIsScanning(false);
-      // TODO: show an actual error state instead of just logging
     }
   };
 
@@ -219,5 +218,13 @@ export default function PhotoConfirmPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PhotoConfirmPage() {
+  return (
+    <Suspense fallback={null}>
+      <PhotoConfirmPageInner />
+    </Suspense>
   );
 }
