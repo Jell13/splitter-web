@@ -27,24 +27,31 @@ export default function BillDetailsPage() {
   const tip = useManualStore((state) => state.tip);
   const setTip = useManualStore((state) => state.setTip);
 
+  const hasHydrated = useManualStore((state) => state.hasHydrated);
+
   const handleTipCalc = (percent: number) => {
+    setCustom(false);
     setSelectedTip(percent);
-    const percentage = (subtotal * percent) / 100;
+    const percentage = (userInput.subtotal * percent) / 100;
     console.log(percentage);
 
     setUserInput({ ...userInput, tip: percentage.toFixed(2) });
   };
 
   useEffect(() => {
-    if (description && tax && tip && subtotal){
+    if(hasHydrated){
       setUserInput({
-        description,
-        tax,
-        tip,
-        subtotal
+        description: description,
+        tax: tax === 0 ? "" : String(tax),
+        tip: tip === 0 ? "" : String(tip),
+        subtotal: subtotal === 0 ? "" : String(subtotal)
       })
     }
-  }, [])
+  }, [hasHydrated])
+  
+  if(!hasHydrated){
+    return null;
+  }
 
   const tipButtonClass = (percent: number) =>
     `flex-1 rounded-control py-2.5 text-sm font-semibold ${
@@ -53,7 +60,7 @@ export default function BillDetailsPage() {
         : "bg-accent text-accent-foreground"
     }`;
 
-  const customButtonClass = () => 
+  const customButtonClass = () =>
     `flex-1 rounded-control ${custom ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"} py-2.5 text-sm font-semibold`;
 
   const handleClick = () => {
@@ -66,6 +73,7 @@ export default function BillDetailsPage() {
 
   const handleCustomTip = () => {
     if (customInputRef.current != null) {
+      setSelectedTip(null);
       setCustom(true);
       customInputRef.current.focus();
     }
@@ -170,9 +178,11 @@ export default function BillDetailsPage() {
               type="text"
               value={userInput.tip}
               ref={customInputRef}
-              onChange={(e) =>
-                setUserInput({ ...userInput, tip: e.target.value })
-              }
+              onChange={(e) => {
+                setSelectedTip(null);
+                setCustom(true);
+                setUserInput({ ...userInput, tip: e.target.value });
+              }}
               inputMode="decimal"
               placeholder="0.00"
               className="ml-1 flex-1 border-none bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"

@@ -9,6 +9,9 @@ import { AddExpenseSheet } from "./components/AddExpenseSheet";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "./stores/user-store";
 import NameEntryPrompt from "./components/NameEntryPrompt";
+import { useConvexAuth } from "convex/react";
+import { SignInButton } from "@clerk/nextjs";
+import { IconUsersGroup } from "@tabler/icons-react";
 
 const activity = [
   {
@@ -38,6 +41,7 @@ export default function HomePage() {
   const [tab, setTab] = useState("all");
   const [sheetOpen, setSheetOpen] = useState(false);
   const router = useRouter();
+  const { isLoading, isAuthenticated } = useConvexAuth();
 
   function getFormattedDate(date: Date): string {
     if (!(date instanceof Date) || isNaN(date.getTime())) {
@@ -77,24 +81,48 @@ export default function HomePage() {
         </div>
       </header>
 
-      <BalanceSummaryCard
-        totalOwedToYou={142.5}
-        youOwe={38.0}
-        owedToYou={180.5}
-      />
+      {isAuthenticated ? (
+        <>
+          <BalanceSummaryCard
+            totalOwedToYou={142.5}
+            youOwe={38.0}
+            owedToYou={180.5}
+          />
 
-      <SegmentedTabs value={tab} onValueChange={setTab} />
+          <SegmentedTabs value={tab} onValueChange={setTab} />
 
-      <div className="flex flex-col gap-1">
-        <p className="mb-1 pl-0.5 text-xs font-medium text-muted-foreground">
-          Recent activity
-        </p>
-        <div className="flex flex-col gap-2">
-          {activity.map((item) => (
-            <ExpenseRow key={item.title} {...item} />
-          ))}
+          <div className="flex flex-col gap-1">
+            <p className="mb-1 pl-0.5 text-xs font-medium text-muted-foreground">
+              Recent activity
+            </p>
+            <div className="flex flex-col gap-2">
+              {activity.map((item) => (
+                <ExpenseRow key={item.title} {...item} />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-card bg-card px-6 py-10 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
+            <IconUsersGroup size={26} stroke={1.75} />
+          </span>
+          <div>
+            <p className="text-base font-semibold text-foreground">
+              No balance to show yet
+            </p>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              You can still split a bill as a guest — but signing in lets you
+              track your balance and split history over time.
+            </p>
+          </div>
+          <SignInButton mode="modal">
+            <button className="rounded-control bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground">
+              Sign in
+            </button>
+          </SignInButton>
         </div>
-      </div>
+      )}
 
       <div className="mt-auto pt-4">
         <BottomNav active="home" onAddExpense={() => setSheetOpen(true)} />

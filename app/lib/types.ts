@@ -12,8 +12,8 @@ export interface ManualBillState{
     tip: number;
     description: string;
     guestCount: number;
-    // total: number;
-    // setTotal: (total: number) => void;
+    hasHydrated: boolean;
+    setHasHydrated: (val: boolean) => void;
     setSubtotal: (subtotal : number) => void;
     setTax: (tax : number) => void;
     setTip: (tip : number) => void;

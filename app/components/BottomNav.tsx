@@ -1,3 +1,5 @@
+"use client";
+
 import {
   IconHome,
   IconUsers,
@@ -5,6 +7,8 @@ import {
   IconReceipt,
   IconUser,
 } from "@tabler/icons-react";
+import { useConvexAuth } from "convex/react";
+import { useClerk } from "@clerk/nextjs";
 
 interface BottomNavProps {
   active: "home" | "groups" | "activity" | "profile";
@@ -12,15 +16,32 @@ interface BottomNavProps {
 }
 
 export function BottomNav({ active, onAddExpense }: BottomNavProps) {
-  const iconClass = (name: BottomNavProps["active"]) =>
-    active === name ? "text-primary-dark" : "text-muted-foreground";
+  const { isAuthenticated } = useConvexAuth();
+  const { openSignIn } = useClerk();
+
+  const iconClass = (name: BottomNavProps["active"], requiresAuth: boolean) => {
+    if (requiresAuth && !isAuthenticated) return "text-muted-foreground/40";
+    return active === name ? "text-primary-dark" : "text-muted-foreground";
+  };
+
+  function handleGatedTap(action: () => void) {
+    if (!isAuthenticated) {
+      openSignIn();
+      return;
+    }
+    action();
+  }
 
   return (
     <div className="flex items-center justify-around border-t border-border pt-2.5">
-      <button aria-label="Home" className={iconClass("home")}>
+      <button aria-label="Home" className={iconClass("home", false)}>
         <IconHome size={20} stroke={1.75} />
       </button>
-      <button aria-label="Groups" className={iconClass("groups")}>
+      <button
+        aria-label="Groups"
+        onClick={() => handleGatedTap(() => {})}
+        className={iconClass("groups", true)}
+      >
         <IconUsers size={20} stroke={1.75} />
       </button>
       <button
@@ -30,10 +51,18 @@ export function BottomNav({ active, onAddExpense }: BottomNavProps) {
       >
         <IconPlus size={20} stroke={2} />
       </button>
-      <button aria-label="Activity" className={iconClass("activity")}>
+      <button
+        aria-label="Activity"
+        onClick={() => handleGatedTap(() => {})}
+        className={iconClass("activity", true)}
+      >
         <IconReceipt size={20} stroke={1.75} />
       </button>
-      <button aria-label="Profile" className={iconClass("profile")}>
+      <button
+        aria-label="Profile"
+        onClick={() => handleGatedTap(() => {})}
+        className={iconClass("profile", true)}
+      >
         <IconUser size={20} stroke={1.75} />
       </button>
     </div>

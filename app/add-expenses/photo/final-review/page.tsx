@@ -19,7 +19,7 @@ const total = 220.64;
 
 export default function FinalReviewPage() {
   const router = useRouter();
-  //   const { isAuthenticated } = useConvexAuth();
+  // const { isAuthenticated } = useConvexAuth();
 
   const subtotal = usePhotoStore((state) => state.subtotal);
   const items = usePhotoStore((state) => state.items);
