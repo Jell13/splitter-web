@@ -10,6 +10,7 @@ export default defineSchema({
     }).index("by_userId", ["userId"]),
     
     splits: defineTable({
+        description: v.string(),
         createdByUserId: v.id("users"),
         method: v.string(),
         subtotal: v.number(),
@@ -24,7 +25,7 @@ export default defineSchema({
             assignedUserIds: v.array(v.id("users"))
         }))
 
-    }),
+    }).index("by_creatorId", ["createdByUserId"]),
 
     split_participants: defineTable({
         splitId: v.id("splits"),

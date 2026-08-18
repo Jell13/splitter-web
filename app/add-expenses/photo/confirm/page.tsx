@@ -2,10 +2,16 @@
 
 import { useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { IconPhoto, IconCamera, IconRefresh, IconReceipt } from "@tabler/icons-react";
+import {
+  IconPhoto,
+  IconCamera,
+  IconRefresh,
+  IconReceipt,
+} from "@tabler/icons-react";
 import { useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { usePhotoStore } from "@/app/stores/photo-upload";
+import { toast } from "sonner";
 
 export default function PhotoConfirmPage() {
   const router = useRouter();
@@ -28,9 +34,59 @@ export default function PhotoConfirmPage() {
   const setTax = usePhotoStore((state) => state.setTax);
   const setItems = usePhotoStore((state) => state.setItems);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0];
+  async function convertHeicToJpeg(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("Canvas not supported"));
+
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(url);
+            if (!blob) return reject(new Error("Conversion failed"));
+            resolve(new File([blob], "receipt.jpg", { type: "image/jpeg" }));
+          },
+          "image/jpeg",
+          0.9,
+        );
+      };
+
+      img.onerror = () =>
+        reject(new Error("Could not load image for conversion"));
+      img.src = url;
+    });
+  }
+
+  function isHeic(file: File): boolean {
+    return (
+      file.type === "image/heic" ||
+      file.type === "image/heif" ||
+      file.name.toLowerCase().endsWith(".heic") ||
+      file.name.toLowerCase().endsWith(".heif")
+    );
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let selected = e.target.files?.[0];
     if (!selected) return;
+
+    if (isHeic(selected)) {
+      try {
+        selected = await convertHeicToJpeg(selected);
+      } catch {
+        // couldn't convert — TODO: show an error, don't silently proceed with an unusable file
+        toast.error("Couldn't process that photo — try a different one");
+        return;
+      }
+    }
+
     setFile(selected);
     setPreviewUrl(URL.createObjectURL(selected));
   }
@@ -71,12 +127,14 @@ export default function PhotoConfirmPage() {
       setTax(parsed.tax);
       setTip(parsed.tip);
 
-      const parsedItems = parsed.items.map((item: { name: string; price: number }) => ({
-        id: crypto.randomUUID(),
-        name: item.name,
-        price: Number(item.price),
-        assignedUserIds: [],
-      }));
+      const parsedItems = parsed.items.map(
+        (item: { name: string; price: number }) => ({
+          id: crypto.randomUUID(),
+          name: item.name,
+          price: Number(item.price),
+          assignedUserIds: [],
+        }),
+      );
       setItems(parsedItems);
 
       router.push("/add-expenses/photo/review");

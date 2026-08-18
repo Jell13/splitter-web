@@ -1,48 +1,15 @@
-"use client";
-
-import {
-  IconHome,
-  IconUsers,
-  IconPlus,
-  IconReceipt,
-  IconUser,
-} from "@tabler/icons-react";
-import { useConvexAuth } from "convex/react";
-import { useClerk } from "@clerk/nextjs";
+import { IconHome, IconPlus, IconInfoCircle } from "@tabler/icons-react";
 
 interface BottomNavProps {
-  active: "home" | "groups" | "activity" | "profile";
   onAddExpense: () => void;
+  onAbout: () => void;
 }
 
-export function BottomNav({ active, onAddExpense }: BottomNavProps) {
-  const { isAuthenticated } = useConvexAuth();
-  const { openSignIn } = useClerk();
-
-  const iconClass = (name: BottomNavProps["active"], requiresAuth: boolean) => {
-    if (requiresAuth && !isAuthenticated) return "text-muted-foreground/40";
-    return active === name ? "text-primary-dark" : "text-muted-foreground";
-  };
-
-  function handleGatedTap(action: () => void) {
-    if (!isAuthenticated) {
-      openSignIn();
-      return;
-    }
-    action();
-  }
-
+export function BottomNav({ onAddExpense, onAbout }: BottomNavProps) {
   return (
     <div className="flex items-center justify-around border-t border-border pt-2.5">
-      <button aria-label="Home" className={iconClass("home", false)}>
+      <button aria-label="Home" className="text-primary-dark">
         <IconHome size={20} stroke={1.75} />
-      </button>
-      <button
-        aria-label="Groups"
-        onClick={() => handleGatedTap(() => {})}
-        className={iconClass("groups", true)}
-      >
-        <IconUsers size={20} stroke={1.75} />
       </button>
       <button
         aria-label="Add expense"
@@ -52,18 +19,11 @@ export function BottomNav({ active, onAddExpense }: BottomNavProps) {
         <IconPlus size={20} stroke={2} />
       </button>
       <button
-        aria-label="Activity"
-        onClick={() => handleGatedTap(() => {})}
-        className={iconClass("activity", true)}
+        aria-label="About"
+        onClick={onAbout}
+        className="text-muted-foreground"
       >
-        <IconReceipt size={20} stroke={1.75} />
-      </button>
-      <button
-        aria-label="Profile"
-        onClick={() => handleGatedTap(() => {})}
-        className={iconClass("profile", true)}
-      >
-        <IconUser size={20} stroke={1.75} />
+        <IconInfoCircle size={20} stroke={1.75} />
       </button>
     </div>
   );

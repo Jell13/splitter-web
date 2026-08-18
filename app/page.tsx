@@ -1,149 +1,150 @@
 "use client";
 
 import { useState } from "react";
-import { BalanceSummaryCard } from "./components/BalanceSummaryCard";
-import { SegmentedTabs } from "./components/SegmentedTabs";
-import { ExpenseRow } from "./components/ExpenseRow";
 import { BottomNav } from "./components/BottomNav";
 import { AddExpenseSheet } from "./components/AddExpenseSheet";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "./stores/user-store";
 import NameEntryPrompt from "./components/NameEntryPrompt";
-import { useConvexAuth } from "convex/react";
-import { SignInButton } from "@clerk/nextjs";
-import { IconUsersGroup } from "@tabler/icons-react";
+import { IconCamera, IconPencil, IconUsers, IconX } from "@tabler/icons-react";
 
-const activity = [
+function getFormattedDate(date: Date): string {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    throw new Error("Invalid Date object provided.");
+  }
+
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  };
+
+  return new Intl.DateTimeFormat("en-US", options).format(date);
+}
+
+const features = [
   {
-    initials: "JM",
-    title: "Dinner at Nori's",
-    subtitle: "Jamie split with you",
-    amount: 32.0,
-    direction: "positive" as const,
+    icon: IconCamera,
+    title: "Scan a receipt",
+    description: "Snap a photo and we'll read the items for you",
   },
   {
-    initials: "SK",
-    title: "Weekend cabin",
-    subtitle: "You owe Sara",
-    amount: 18.0,
-    direction: "negative" as const,
+    icon: IconPencil,
+    title: "Or enter it yourself",
+    description: "Just the total, tax, and tip — quick and simple",
   },
   {
-    initials: "TL",
-    title: "Groceries",
-    subtitle: "Tom split with you",
-    amount: 14.5,
-    direction: "positive" as const,
+    icon: IconUsers,
+    title: "Split it your way",
+    description: "Evenly, or item by item with whoever you're with",
   },
 ];
 
 export default function HomePage() {
-  const [tab, setTab] = useState("all");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const router = useRouter();
-  const { isLoading, isAuthenticated } = useConvexAuth();
-
-  function getFormattedDate(date: Date): string {
-    if (!(date instanceof Date) || isNaN(date.getTime())) {
-      throw new Error("Invalid Date object provided.");
-    }
-
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    };
-
-    return new Intl.DateTimeFormat("en-US", options).format(date);
-  }
 
   const name = useUserStore((state) => state.name);
   const setName = useUserStore((state) => state.setName);
 
   const today = new Date();
   const formatted = getFormattedDate(today);
-  let day = today.getDate(); // Day of the month (1-31)
-  let month = today.getMonth() + 1; // Month (0-11) → +1 to make it 1-12
-  let year = today.getFullYear();
+
+  const handleSelectOption = (option: string) => {
+    switch (option) {
+      case "manual":
+        router.push("/add-expenses/manual/bill-details");
+        break;
+      case "scan":
+        router.push("/add-expenses/photo/confirm?source=camera");
+        break;
+      case "photo":
+        router.push("/add-expenses/photo/confirm?source=gallery");
+        break;
+    }
+  };
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 pb-4 pt-5">
       {!name && <NameEntryPrompt onSubmit={setName} />}
 
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl">Hey {name ?? ""}</h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">{formatted}</p>
-        </div>
-        <div className="flex h-9.5 w-9.5 items-center justify-center rounded-full bg-accent text-[13px] font-semibold text-accent-foreground">
-          {name ? name[0].toUpperCase() : ""}
-        </div>
+      <header>
+        <h1 className="text-xl">Hey {name ?? ""}</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">{formatted}</p>
       </header>
 
-      {isAuthenticated ? (
-        <>
-          <BalanceSummaryCard
-            totalOwedToYou={142.5}
-            youOwe={38.0}
-            owedToYou={180.5}
-          />
-
-          <SegmentedTabs value={tab} onValueChange={setTab} />
-
-          <div className="flex flex-col gap-1">
-            <p className="mb-1 pl-0.5 text-xs font-medium text-muted-foreground">
-              Recent activity
-            </p>
-            <div className="flex flex-col gap-2">
-              {activity.map((item) => (
-                <ExpenseRow key={item.title} {...item} />
-              ))}
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-card bg-card px-6 py-10 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
-            <IconUsersGroup size={26} stroke={1.75} />
-          </span>
-          <div>
-            <p className="text-base font-semibold text-foreground">
-              No balance to show yet
-            </p>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              You can still split a bill as a guest — but signing in lets you
-              track your balance and split history over time.
-            </p>
-          </div>
-          <SignInButton mode="modal">
-            <button className="rounded-control bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground">
-              Sign in
-            </button>
-          </SignInButton>
+      <div className="flex flex-1 flex-col gap-3 pt-2">
+        <div className="rounded-card bg-primary px-5 py-6 text-center">
+          <p className="font-display text-xl text-primary-foreground">
+            Split bills without the hassle
+          </p>
+          <p className="mt-1.5 text-sm text-primary-foreground/80">
+            Tap the + below to get started — no account needed
+          </p>
         </div>
-      )}
+
+        <div className="flex flex-col gap-2">
+          {features.map((feature) => (
+            <div
+              key={feature.title}
+              className="flex items-center gap-3 rounded-card bg-card p-4"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                <feature.icon size={20} stroke={1.75} />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {feature.title}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {feature.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="mt-auto pt-4">
-        <BottomNav active="home" onAddExpense={() => setSheetOpen(true)} />
+        <BottomNav
+          onAddExpense={() => setSheetOpen(true)}
+          onAbout={() => setAboutOpen(true)}
+        />
         <AddExpenseSheet
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
-          onSelectOption={(option) => {
-            switch (option) {
-              case "manual":
-                router.push("/add-expenses/manual/bill-details");
-                break;
-              case "scan":
-                router.push("/add-expenses/photo/confirm?source=camera");
-                break;
-              case "photo":
-                router.push("/add-expenses/photo/confirm?source=gallery");
-                break;
-            }
-          }}
+          onSelectOption={(option) => handleSelectOption(option)}
         />
       </div>
+
+      {aboutOpen && (
+        <div
+          onClick={() => setAboutOpen(false)}
+          className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/35"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md rounded-t-[28px] bg-card p-6"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg text-foreground">About this app</h2>
+              <button
+                onClick={() => setAboutOpen(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-accent-foreground"
+              >
+                <IconX size={16} stroke={2} />
+              </button>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              This app helps you split a bill with friends — scan a receipt,
+              enter one manually, or split evenly, no sign-up required.
+              Everything works right away as a guest.
+            </p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
