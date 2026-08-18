@@ -3,6 +3,7 @@
 import { usePhotoStore } from "@/app/stores/photo-upload";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { IconTrash } from "@tabler/icons-react";
 
 export default function PhotoReviewPage() {
   const router = useRouter();
@@ -43,6 +44,10 @@ export default function PhotoReviewPage() {
     setEditableItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, price } : item)),
     );
+  };
+
+  const handleRemoveItem = (id: string) => {
+    setEditableItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   const derivedSubtotal = editableItems.reduce(
@@ -121,29 +126,42 @@ export default function PhotoReviewPage() {
           />
         </div>
         <div className="rounded-card bg-card p-4">
-          {editableItems.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center gap-2 border-t border-border py-2 first:border-t-0"
-            >
-              <input
-                type="text"
-                value={item.name}
-                onChange={(e) => handleEditItemName(item.id, e.target.value)}
-                className="flex-1 border-none bg-transparent text-base text-foreground outline-none"
-              />
-              <div className="flex items-center">
-                <span className="text-base text-muted-foreground">$</span>
+          {editableItems.length === 0 ? (
+            <p className="py-3 text-center text-sm text-muted-foreground">
+              No items — add them on the next screen or go back and rescan
+            </p>
+          ) : (
+            editableItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-2 border-t border-border py-2 first:border-t-0"
+              >
                 <input
                   type="text"
-                  value={item.price}
-                  inputMode="decimal"
-                  onChange={(e) => handleEditItemPrice(item.id, e.target.value)}
-                  className="w-16 border-none bg-transparent text-right text-base text-foreground outline-none"
+                  value={item.name}
+                  onChange={(e) => handleEditItemName(item.id, e.target.value)}
+                  className="flex-1 border-none bg-transparent text-base text-foreground outline-none"
                 />
+                <div className="flex items-center">
+                  <span className="text-base text-muted-foreground">$</span>
+                  <input
+                    type="text"
+                    value={item.price}
+                    inputMode="decimal"
+                    onChange={(e) => handleEditItemPrice(item.id, e.target.value)}
+                    className="w-16 border-none bg-transparent text-right text-base text-foreground outline-none"
+                  />
+                </div>
+                <button
+                  onClick={() => handleRemoveItem(item.id)}
+                  aria-label={`Remove ${item.name || "item"}`}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground"
+                >
+                  <IconTrash size={16} stroke={1.75} />
+                </button>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         <div className="rounded-card bg-card p-4">

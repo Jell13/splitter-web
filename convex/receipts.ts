@@ -27,7 +27,9 @@ export const parseReceipt = action({
 Rules:
 - "description" is the merchant/restaurant name. If it isn't legible or isn't present, use "Receipt".
 - "items" is every line item you can read, with its price. If no items are legible at all, return an empty array [].
-- "subtotal" is the pre-tax, pre-tip total. If it isn't shown, calculate it by summing all item prices. If items are also unreadable, use 0.
+- If a promo, discount, or coupon reduces an item's price, apply that reduction directly to the item's own price — do NOT list the discount or promo as its own separate line item.
+- If an item is made fully free by a discount or promo (its final price is $0), exclude that item from the items array entirely — there's nothing to charge for it.
+- "subtotal" is the pre-tax, pre-tip total, reflecting prices AFTER any discounts have been applied. If it isn't shown, calculate it by summing all item prices (post-discount). If items are also unreadable, use 0.
 - "tax" is the tax amount in dollars. If no tax is shown on the receipt, use 0.
 - "tip" is the tip amount in dollars. If no tip is shown, use 0.
 - All prices and totals must be plain numbers (e.g. 12.50), never strings, never including a "$" sign.
@@ -53,7 +55,7 @@ Rules:
             ],
           },
         ],
-        response_format: {type: "json_object"}
+        response_format: { type: "json_object" },
       }),
     });
 
