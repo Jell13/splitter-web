@@ -83,7 +83,7 @@ export default function PhotoReviewPage() {
     return null;
   }
 
-  const total = subtotal + tax + tip;
+  const total = derivedSubtotal + (Number(userInput.tax) || 0) + (Number(userInput.tip) || 0);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
