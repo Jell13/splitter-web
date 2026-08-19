@@ -134,31 +134,33 @@ export default function PhotoReviewPage() {
             editableItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-2 border-t border-border py-2 first:border-t-0"
+                className="flex items-center gap-3 border-t border-border py-2.5 first:border-t-0"
               >
                 <input
                   type="text"
                   value={item.name}
                   onChange={(e) => handleEditItemName(item.id, e.target.value)}
-                  className="flex-1 border-none bg-transparent text-base text-foreground outline-none"
+                  className="min-w-0 flex-1 border-none bg-transparent text-base text-foreground outline-none"
                 />
-                <div className="flex items-center">
-                  <span className="text-base text-muted-foreground">$</span>
-                  <input
-                    type="text"
-                    value={item.price}
-                    inputMode="decimal"
-                    onChange={(e) => handleEditItemPrice(item.id, e.target.value)}
-                    className="w-16 border-none bg-transparent text-right text-base text-foreground outline-none"
-                  />
+                <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex items-center gap-0.5">
+                    <span className="text-base text-muted-foreground">$</span>
+                    <input
+                      type="text"
+                      value={item.price}
+                      inputMode="decimal"
+                      onChange={(e) => handleEditItemPrice(item.id, e.target.value)}
+                      className="w-14 border-none bg-transparent text-right text-base text-foreground outline-none"
+                    />
+                  </div>
+                  <button
+                    onClick={() => handleRemoveItem(item.id)}
+                    aria-label={`Remove ${item.name || "item"}`}
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground"
+                  >
+                    <IconTrash size={16} stroke={1.75} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleRemoveItem(item.id)}
-                  aria-label={`Remove ${item.name || "item"}`}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground"
-                >
-                  <IconTrash size={16} stroke={1.75} />
-                </button>
               </div>
             ))
           )}
