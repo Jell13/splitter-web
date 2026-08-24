@@ -52,6 +52,8 @@ export default function HomePage() {
   const today = new Date();
   const formatted = getFormattedDate(today);
 
+  // if (!hasHydrated) return null;
+
   const handleSelectOption = (option: string) => {
     switch (option) {
       case "manual":
