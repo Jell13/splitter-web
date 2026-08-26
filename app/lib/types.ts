@@ -67,3 +67,10 @@ export interface PhotoBillState{
     removeParticipant: (localId: string) => void;
     reset: () => void;
 }
+
+export interface calculateSplitProp {
+    subtotal: number;
+    tip: number;
+    tax: number;
+    totalPeople: number;
+}

@@ -10,7 +10,7 @@ export const parseReceipt = action({
   handler: async (ctx, args) => {
     const { imageUrl } = args;
     const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) return new Error("OPENAI_API_KEY not set");
+    if (!apiKey) throw new Error("OPENAI_API_KEY not set");
 
     const prompt = `You are reading a photo of a restaurant or store receipt. Extract the following information and return it as a single JSON object, with EXACTLY this shape:
 
@@ -64,6 +64,12 @@ Rules:
     }
 
     const json = await response.json();
-    return JSON.parse(json.choices[0].message.content);
+    let parse;
+    try{
+      parse = JSON.parse(json.choices[0].message.content);
+      return parse;
+    } catch(error){
+      throw new Error("Not an official JSON being returned")
+    }
   },
 });

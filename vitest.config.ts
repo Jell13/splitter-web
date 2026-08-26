@@ -1,8 +1,10 @@
-// vitest.config.ts
-import { defineConfig } from "vitest/config";
+import { defineConfig, configDefaults } from "vitest/config";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+  plugins: [tsconfigPaths()],
   test: {
+    globals: true,
     projects: [
       {
         extends: true,
@@ -17,8 +19,9 @@ export default defineConfig({
         test: {
           name: "frontend",
           include: ["**/*.test.{ts,tsx,js,jsx}"],
-          exclude: ["convex/**"],
+          exclude: [...configDefaults.exclude, "convex/**", "tests/**"],
           environment: "jsdom",
+          setupFiles: ["./vitest.setup.ts"],
         },
       },
     ],

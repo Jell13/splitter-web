@@ -90,10 +90,11 @@ export default function BillDetailsPage() {
 
       <div className="flex flex-col gap-6 px-5 pt-6">
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <label htmlFor="desc-id" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Description
           </label>
           <input
+            id="desc-id"
             type="text"
             value={userInput.description}
             onChange={(e) =>
@@ -105,12 +106,13 @@ export default function BillDetailsPage() {
         </div>
 
         <div className="flex flex-col items-center py-4">
-          <span className="text-xs font-medium text-muted-foreground">
+          <label htmlFor="subtotal-id" className="text-xs font-medium text-muted-foreground">
             Subtotal
-          </span>
+          </label>
           <div className="mt-2 flex items-center">
             <span className="text-[26px] font-semibold text-foreground">$</span>
             <input
+              id="subtotal-id"
               type="text"
               value={userInput.subtotal}
               onChange={(e) =>
@@ -124,12 +126,13 @@ export default function BillDetailsPage() {
         </div>
 
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <label htmlFor="tax-id" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Tax
           </label>
           <div className="flex items-center rounded-control border border-border bg-card px-4 py-3">
             <span className="text-sm text-foreground">$</span>
             <input
+              id="tax-id"
               type="text"
               value={userInput.tax}
               onChange={(e) =>
@@ -143,7 +146,7 @@ export default function BillDetailsPage() {
         </div>
 
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <label htmlFor="tip-id" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Tip
           </label>
           <div className="flex gap-2">
@@ -175,6 +178,7 @@ export default function BillDetailsPage() {
           <div className="mt-2 flex items-center rounded-control border border-border bg-card px-4 py-3">
             <span className="text-sm text-foreground">$</span>
             <input
+              id="tip-id"
               type="text"
               value={userInput.tip}
               ref={customInputRef}

@@ -1,5 +1,6 @@
 "use client"
 
+import { calculatePerPerson } from "@/app/lib/split";
 import { useManualStore } from "@/app/stores/manual-bill";
 import { useRouter } from "next/navigation";
 
@@ -21,7 +22,7 @@ export default function ManualReview() {
   const reset = useManualStore((state) => state.reset)
 
   const total = subtotal + tax + tip;
-  const perPerson = total / guestCount;
+  const perPerson = calculatePerPerson(subtotal, tip, tax, guestCount);
 
   const handleConfirm = () => {
     router.push("summary")

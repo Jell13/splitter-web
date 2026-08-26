@@ -1,5 +1,6 @@
 "use client";
 
+import { calculatePerPerson } from "@/app/lib/split";
 import { useManualStore } from "@/app/stores/manual-bill";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
@@ -27,8 +28,8 @@ export default function GuestCountPage() {
   const handleReduce = () => {
     setTotalPeople((prev) => prev - 1);
   };
-  const total = subtotal + tip + tax
-  const perPerson = total / totalPeople
+  // const total = subtotal + tip + tax
+  const perPerson = calculatePerPerson(subtotal, tip, tax, totalPeople);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
