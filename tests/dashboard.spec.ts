@@ -57,8 +57,8 @@ test("Route to manual and add", async({page}) => {
     await page.goto("/")
     await routeToManual(page);
 
-    await page.getByRole("textbox", { name: 'Real Seafood Co.'}).pressSequentially("In n Out");
-    await page.getByRole("textbox", { name: "0.00"}).first().pressSequentially("32.65");
+    await page.getByLabel("Description").pressSequentially("In n Out");
+    await page.getByLabel("Subtotal").pressSequentially("32.65");
     // await page.getByRole("textbox", { name: ""})
     await page.getByRole("button", { name: "Continue"}).click();
 })
