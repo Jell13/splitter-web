@@ -69,7 +69,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 pb-4 pt-5">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-4 pb-4 pt-5">
       {!name && <NameEntryPrompt onSubmit={setName} />}
 
       <header>

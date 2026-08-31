@@ -91,13 +91,13 @@ export default function AssignItemsPage() {
 
   return (
     <div
-      className="flex min-h-screen flex-col bg-background"
+      className="flex h-full flex-col bg-background"
       onClick={() => {
         setSelectedIds([]);
         setPendingRemovalKey(null);
       }}
     >
-      <div className="px-5 pt-2">
+      <div className="shrink-0 px-5 pt-2">
         <h1 className="text-xl">Assign items</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {selectedIds.length === 0
@@ -106,164 +106,179 @@ export default function AssignItemsPage() {
         </p>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 px-5 pt-6">
-        {items.map((item) => {
-          const assignedPeople = participants.filter((p) =>
-            (item.assignedUserIds ?? []).includes(p.localId),
-          );
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-6">
+        <div className="flex flex-col gap-2">
+          {items.map((item) => {
+            const assignedPeople = participants.filter((p) =>
+              (item.assignedUserIds ?? []).includes(p.localId),
+            );
 
-          return (
-            <div
-              key={item.id}
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleItemTap(item.id);
-              }}
-              className={`flex items-center justify-between rounded-card bg-card p-3.5 text-left ${
-                selectedIds.length === 0
-                  ? "cursor-default opacity-70"
-                  : "cursor-pointer"
-              }`}
-            >
-              <div className="min-w-0 flex-1">
-                <span className="block text-base text-foreground">
-                  {item.name}
-                </span>
-                {assignedPeople.length > 0 && (
-                  <span className="mt-1.5 flex gap-1.5">
-                    {assignedPeople.map((p) => {
-                      const key = `${item.id}:${p.localId}`;
-                      const isArmed = pendingRemovalKey === key;
-                      return (
-                        <button
-                          key={p.localId}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleChipTap(item.id, p.localId);
-                          }}
-                          className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold transition ${
-                            isArmed
-                              ? "bg-destructive text-destructive-foreground"
-                              : "bg-accent text-accent-foreground"
-                          }`}
-                        >
-                          {isArmed ? (
-                            <IconX size={18} stroke={2.25} />
-                          ) : (
-                            p.initials
-                          )}
-                        </button>
-                      );
-                    })}
+            return (
+              <div
+                key={item.id}
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleItemTap(item.id);
+                }}
+                className={`flex items-center justify-between rounded-card bg-card p-3.5 text-left ${
+                  selectedIds.length === 0
+                    ? "cursor-default opacity-70"
+                    : "cursor-pointer"
+                }`}
+              >
+                <div className="min-w-0 flex-1">
+                  <span className="block text-base text-foreground">
+                    {item.name}
                   </span>
-                )}
+                  {assignedPeople.length > 0 && (
+                    <span className="mt-1.5 flex gap-1.5">
+                      {assignedPeople.map((p) => {
+                        const key = `${item.id}:${p.localId}`;
+                        const isArmed = pendingRemovalKey === key;
+                        return (
+                          <button
+                            key={p.localId}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleChipTap(item.id, p.localId);
+                            }}
+                            className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold transition ${
+                              isArmed
+                                ? "bg-destructive text-destructive-foreground"
+                                : "bg-accent text-accent-foreground"
+                            }`}
+                          >
+                            {isArmed ? (
+                              <IconX size={18} stroke={2.25} />
+                            ) : (
+                              p.initials
+                            )}
+                          </button>
+                        );
+                      })}
+                    </span>
+                  )}
+                </div>
+                <span className="tabular-amount ml-3 shrink-0 text-base text-foreground">
+                  ${item.price.toFixed(2)}
+                </span>
               </div>
-              <span className="tabular-amount ml-3 shrink-0 text-base text-foreground">
-                ${item.price.toFixed(2)}
+            );
+          })}
+
+          <div className="mt-2 rounded-card bg-card p-4">
+            <div className="flex items-center justify-between py-1.5">
+              <span className="text-sm text-muted-foreground">Subtotal</span>
+              <span className="tabular-amount text-sm text-foreground">
+                ${subtotal.toFixed(2)}
               </span>
             </div>
-          );
-        })}
+            <div className="flex items-center justify-between border-t border-border py-1.5">
+              <span className="text-sm text-muted-foreground">Tax</span>
+              <span className="tabular-amount text-sm text-foreground">
+                ${tax.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between border-t border-border py-1.5">
+              <span className="text-sm text-muted-foreground">Tip</span>
+              <span className="tabular-amount text-sm text-foreground">
+                ${tip.toFixed(2)}
+              </span>
+            </div>
+          </div>
 
-        <div className="mt-2 rounded-card bg-card p-4">
-          <div className="flex items-center justify-between py-1.5">
-            <span className="text-sm text-muted-foreground">Subtotal</span>
-            <span className="tabular-amount text-sm text-foreground">
-              ${subtotal.toFixed(2)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between border-t border-border py-1.5">
-            <span className="text-sm text-muted-foreground">Tax</span>
-            <span className="tabular-amount text-sm text-foreground">
-              ${tax.toFixed(2)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between border-t border-border py-1.5">
-            <span className="text-sm text-muted-foreground">Tip</span>
-            <span className="tabular-amount text-sm text-foreground">
-              ${tip.toFixed(2)}
-            </span>
-          </div>
-        </div>
-
-        <div className="rounded-card bg-primary px-5 py-4">
-          <div className="flex items-center justify-between">
-            <span className="text-base font-medium text-primary-foreground/80">
-              Total
-            </span>
-            <span className="tabular-amount text-[30px] text-primary-foreground">
-              ${total.toFixed(2)}
-            </span>
+          <div className="rounded-card bg-primary px-5 py-4">
+            <div className="flex items-center justify-between">
+              <span className="text-base font-medium text-primary-foreground/80">
+                Total
+              </span>
+              <span className="tabular-amount text-[30px] text-primary-foreground">
+                ${total.toFixed(2)}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 px-5 pb-2 pt-4">
-        {participants.map((person) => {
-          const isSelected = selectedIds.includes(person.localId);
-          return (
-            <button
-              key={person.localId}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleParticipantSelected(person.localId);
-              }}
-              className={`relative flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold transition ${
-                isSelected
-                  ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background"
-                  : "bg-accent text-accent-foreground"
-              }`}
-            >
-              {person.initials}
-              {isSelected && (
-                <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-success text-white">
-                  <IconCheck size={12} stroke={3} />
-                </span>
-              )}
-            </button>
-          );
-        })}
+      <div className="shrink-0 px-5 pb-2 pt-4">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Split with
+          </span>
+          <span className="text-sm text-muted-foreground">
+            {participants.length}{" "}
+            {participants.length === 1 ? "person" : "people"}
+          </span>
+        </div>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsAddingParticipant(true);
-          }}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-dashed border-border text-lg text-muted-foreground"
-        >
-          +
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {participants.map((person) => {
+            const isSelected = selectedIds.includes(person.localId);
+            return (
+              <button
+                key={person.localId}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleParticipantSelected(person.localId);
+                }}
+                className={`relative flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold transition ${
+                  isSelected
+                    ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background"
+                    : "bg-accent text-accent-foreground"
+                }`}
+              >
+                {person.initials}
+                {isSelected && (
+                  <span className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-success text-white">
+                    <IconCheck size={12} stroke={3} />
+                  </span>
+                )}
+              </button>
+            );
+          })}
 
-        {selectedIds.length === 1 && (() => {
-          const selectedPerson = participants.find(
-            (p) => p.localId === selectedIds[0],
-          );
-          const hasAssignments = items.some((item) =>
-            (item.assignedUserIds ?? []).includes(selectedIds[0]),
-          );
-          const canDelete =
-            selectedPerson && !selectedPerson.isSelf && !hasAssignments;
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsAddingParticipant(true);
+            }}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-dashed border-border text-lg text-muted-foreground"
+          >
+            +
+          </button>
 
-          if (!canDelete) return null;
+          {selectedIds.length === 1 &&
+            (() => {
+              const selectedPerson = participants.find(
+                (p) => p.localId === selectedIds[0],
+              );
+              const hasAssignments = items.some((item) =>
+                (item.assignedUserIds ?? []).includes(selectedIds[0]),
+              );
+              const canDelete =
+                selectedPerson && !selectedPerson.isSelf && !hasAssignments;
 
-          return (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                removeParticipant(selectedIds[0]);
-                setSelectedIds([]);
-              }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive text-destructive-foreground"
-            >
-              <IconTrash size={18} stroke={1.75} />
-            </button>
-          );
-        })()}
+              if (!canDelete) return null;
+
+              return (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeParticipant(selectedIds[0]);
+                    setSelectedIds([]);
+                  }}
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive text-destructive-foreground"
+                >
+                  <IconTrash size={18} stroke={1.75} />
+                </button>
+              );
+            })()}
+        </div>
       </div>
 
-      <div className="px-5 pb-8 pt-2">
+      <div className="shrink-0 px-5 pb-8 pt-2">
         <button
           onClick={(e) => {
             e.stopPropagation();

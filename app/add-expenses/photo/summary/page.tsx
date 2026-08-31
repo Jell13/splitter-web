@@ -32,27 +32,38 @@ export default function PhotoSummaryPage() {
     });
   });
 
-  // Only show people other than yourself — you paid, they owe you.
-  const shares = participants
-    .filter((p) => !p.isSelf)
-    .map((p) => {
-      const perPersonTotal = personSubtotal[p.localId] || 0;
-      const proportionalTaxTip =
-        subtotal > 0 ? (perPersonTotal / subtotal) * (tax + tip) : 0;
-      return {
-        ...p,
-        amount: perPersonTotal + proportionalTaxTip,
-      };
-    });
+  // Everyone's share, including the creator — used for the full copy breakdown.
+  const allShares = participants.map((p) => {
+    const perPersonTotal = personSubtotal[p.localId] || 0;
+    const proportionalTaxTip =
+      subtotal > 0 ? (perPersonTotal / subtotal) * (tax + tip) : 0;
+    return {
+      ...p,
+      amount: perPersonTotal + proportionalTaxTip,
+    };
+  });
+
+  // Only show people other than yourself on screen — you paid, they owe you.
+  const shares = allShares.filter((p) => !p.isSelf);
 
   function buildShareText() {
+    // Creator first, so whoever reads the message immediately sees what
+    // the person who paid is on the hook for too.
+    const sortedShares = [...allShares].sort(
+      (a, b) => Number(b.isSelf) - Number(a.isSelf),
+    );
+
     const lines = [
       description
         ? `${description} — Total: $${total.toFixed(2)}`
         : `Total: $${total.toFixed(2)}`,
       "",
-      "What everyone owes:",
-      ...shares.map((p) => `${p.name}: $${p.amount.toFixed(2)}`),
+      "Full breakdown:",
+      ...sortedShares.map((p) =>
+        p.isSelf
+          ? `${p.name} (you): $${p.amount.toFixed(2)}`
+          : `${p.name}: $${p.amount.toFixed(2)}`,
+      ),
     ];
     return lines.join("\n");
   }
@@ -70,8 +81,8 @@ export default function PhotoSummaryPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex flex-col items-center px-5 pt-8">
+    <div className="flex h-full flex-col bg-background">
+      <div className="shrink-0 flex flex-col items-center px-5 pt-8">
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success-soft text-success-foreground">
           <IconCheck size={26} stroke={2} />
         </span>
@@ -100,39 +111,41 @@ export default function PhotoSummaryPage() {
         </button>
       </div>
 
-      <div className="flex flex-col gap-4 px-5 pt-8">
-        <div className="rounded-card bg-primary px-5 py-4">
-          <div className="flex items-center justify-between">
-            <span className="text-base font-medium text-primary-foreground/80">
-              Total
-            </span>
-            <span className="tabular-amount text-[30px] text-primary-foreground">
-              ${total.toFixed(2)}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {shares.map((person) => (
-            <div
-              key={person.localId}
-              className="flex items-center gap-3 rounded-card bg-card px-4 py-3"
-            >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
-                {person.initials}
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-8">
+        <div className="flex flex-col gap-4">
+          <div className="rounded-card bg-primary px-5 py-4">
+            <div className="flex items-center justify-between">
+              <span className="text-base font-medium text-primary-foreground/80">
+                Total
               </span>
-              <span className="flex-1 text-base text-foreground">
-                {person.name}
-              </span>
-              <span className="tabular-amount rounded-full bg-success-soft px-3 py-1.5 text-sm text-success-foreground">
-                ${person.amount.toFixed(2)}
+              <span className="tabular-amount text-[30px] text-primary-foreground">
+                ${total.toFixed(2)}
               </span>
             </div>
-          ))}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {shares.map((person) => (
+              <div
+                key={person.localId}
+                className="flex items-center gap-3 rounded-card bg-card px-4 py-3"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
+                  {person.initials}
+                </span>
+                <span className="flex-1 text-base text-foreground">
+                  {person.name}
+                </span>
+                <span className="tabular-amount rounded-full bg-success-soft px-3 py-1.5 text-sm text-success-foreground">
+                  ${person.amount.toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="mt-auto px-5 pb-8 pt-6">
+      <div className="shrink-0 px-5 pb-8 pt-6">
         <button
           onClick={handleDone}
           className="w-full rounded-control bg-primary py-3.5 text-base font-semibold text-primary-foreground"

@@ -11,8 +11,8 @@ export default function AddExpenseLayout({
   const router = useRouter();
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-background">
-      <div className="px-5 pt-6">
+    <div className="mx-auto flex h-dvh max-w-md flex-col overflow-hidden bg-background">
+      <div className="shrink-0 px-5 pt-6">
         <button
           aria-label="Back"
           onClick={() => router.back()}
@@ -21,7 +21,7 @@ export default function AddExpenseLayout({
           <IconArrowLeft size={18} stroke={1.75} />
         </button>
       </div>
-      {children}
+      <div className="min-h-0 flex-1">{children}</div>
     </div>
   );
 }

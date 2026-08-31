@@ -145,7 +145,7 @@ function PhotoConfirmPageInner() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-background">
+    <div className="relative flex h-full flex-col bg-background">
       <input
         ref={inputRef}
         type="file"
@@ -159,7 +159,7 @@ function PhotoConfirmPageInner() {
         <h1 className="text-xl">{isCameraMode ? "Scan" : "Photo"}</h1>
       </div>
 
-      <div className="flex flex-1 flex-col px-5 pt-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-6">
         {previewUrl ? (
           <img
             src={previewUrl}
@@ -194,7 +194,7 @@ function PhotoConfirmPageInner() {
         )}
       </div>
 
-      <div className="px-5 pb-8 pt-4">
+      <div className="shrink-0 px-5 pb-8 pt-4">
         <button
           onClick={handleUsePhoto}
           disabled={!previewUrl || isScanning}
