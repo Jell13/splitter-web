@@ -86,7 +86,7 @@ export default function PhotoSummaryPage() {
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success-soft text-success-foreground">
           <IconCheck size={26} stroke={2} />
         </span>
-        <p className="mt-4 text-lg font-semibold text-foreground">
+        <p className="mt-4 text-2xl font-semibold text-foreground">
           Split complete
         </p>
         {description && (

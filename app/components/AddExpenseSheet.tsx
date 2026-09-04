@@ -52,7 +52,7 @@ export function AddExpenseSheet({
       <div className="relative w-full rounded-t-[28px] bg-card px-5 pb-8 pt-2.5">
         <div className="mx-auto mb-5 h-1 w-9 rounded-full bg-border" />
 
-        <h2 className="mb-1.5 text-[17px]">Add an expense</h2>
+        <h2 className="mb-1.5 text-2xl">Add an expense</h2>
 
         <div className="divide-y divide-border">
           {options.map((option) => (
@@ -65,10 +65,10 @@ export function AddExpenseSheet({
                 {option.icon}
               </span>
               <span className="flex-1">
-                <span className="block text-sm font-semibold text-foreground">
+                <span className="block text-base font-semibold text-foreground">
                   {option.label}
                 </span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">
+                <span className="mt-0.5 block text-sm text-muted-foreground">
                   {option.description}
                 </span>
               </span>

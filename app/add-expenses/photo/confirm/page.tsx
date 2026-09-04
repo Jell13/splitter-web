@@ -156,7 +156,7 @@ function PhotoConfirmPageInner() {
       />
 
       <div className="px-5 pt-2">
-        <h1 className="text-xl">{isCameraMode ? "Scan" : "Photo"}</h1>
+        <h1 className="text-2xl">{isCameraMode ? "Scan" : "Photo"}</h1>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-6">
@@ -176,7 +176,7 @@ function PhotoConfirmPageInner() {
             ) : (
               <IconPhoto size={32} stroke={1.5} />
             )}
-            <span className="text-sm">
+            <span className="text-xl font-semibold">
               {isCameraMode ? "Tap to take a photo" : "Tap to choose a photo"}
             </span>
           </button>

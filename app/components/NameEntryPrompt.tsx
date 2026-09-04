@@ -13,8 +13,8 @@ const NameEntryPrompt = ({ onSubmit }: NameEntryPromptProp) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/35 px-6">
       <div className="w-full max-w-xs rounded-card bg-card p-6 text-center">
-        <h2 className="text-[18px]">What should we call you?</h2>
-        <p className="mt-1.5 text-[13px] text-muted-foreground">
+        <h2 className="text-2xl">What should we call you?</h2>
+        <p className="mt-1.5 text-base text-muted-foreground">
           This is how friends will see you in a split.
         </p>
 

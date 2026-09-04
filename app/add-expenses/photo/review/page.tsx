@@ -103,8 +103,8 @@ export default function PhotoReviewPage() {
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="px-5 pt-2">
-        <h1 className="text-xl">Review scan</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-2xl">Review scan</h1>
+        <p className="mt-1 text-xl font-semibold text-foreground">
           Double check we read this right
         </p>
       </div>

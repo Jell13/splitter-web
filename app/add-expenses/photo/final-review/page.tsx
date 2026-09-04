@@ -55,8 +55,8 @@ export default function FinalReviewPage() {
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="shrink-0 px-5 pt-2">
-        <h1 className="text-xl">Final review</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-2xl">Final review</h1>
+        <p className="mt-1 text-xl font-semibold text-foreground">
           Here's how it breaks down
         </p>
       </div>

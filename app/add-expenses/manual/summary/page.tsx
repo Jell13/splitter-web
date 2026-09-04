@@ -26,7 +26,7 @@ export default function ManualSummary() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="px-5 pt-2">
-        <h1 className="text-[18px]">Summary</h1>
+        <h1 className="text-2xl">Summary</h1>
         <p className="mt-1 text-[13px] text-muted-foreground">Step 4 of 4</p>
       </div>
 
@@ -34,7 +34,7 @@ export default function ManualSummary() {
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success-soft text-success-foreground">
           <IconCheck size={26} stroke={2} />
         </span>
-        <p className="mt-4 text-[17px] font-semibold text-muted-foreground">
+        <p className="mt-4 text-2xl font-semibold text-foreground">
           Split complete
         </p>
         {description && (

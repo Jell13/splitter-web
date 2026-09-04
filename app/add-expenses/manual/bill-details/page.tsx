@@ -84,7 +84,7 @@ export default function BillDetailsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="px-5 pt-2">
-        <h1 className="text-[18px]">Bill details</h1>
+        <h1 className="text-2xl">Bill details</h1>
         <p className="mt-1 text-[13px] text-muted-foreground">Step 1 of 4</p>
       </div>
 

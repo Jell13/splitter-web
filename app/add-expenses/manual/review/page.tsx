@@ -30,7 +30,7 @@ export default function ManualReview() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="px-5 pt-2">
-        <h1 className="text-[18px]">Review bill</h1>
+        <h1 className="text-2xl">Review bill</h1>
         <p className="mt-1 text-[13px] text-muted-foreground">
           Step 3 of 4
         </p>
