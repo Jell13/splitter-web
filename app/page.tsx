@@ -73,16 +73,16 @@ export default function HomePage() {
       {!name && <NameEntryPrompt onSubmit={setName} />}
 
       <header>
-        <h1 className="text-2xl">Hey {name ?? ""}</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">{formatted}</p>
+        <h1 className="text-xl">Hey {name ?? ""}</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">{formatted}</p>
       </header>
 
       <div className="flex flex-1 flex-col gap-3 pt-2">
         <div className="rounded-card bg-primary px-5 py-6 text-center">
-          <p className="font-display text-2xl text-primary-foreground">
+          <p className="font-display text-xl text-primary-foreground">
             Split bills without the hassle
           </p>
-          <p className="mt-1.5 text-xl font-semibold text-primary-foreground/90">
+          <p className="mt-1.5 text-sm text-primary-foreground/80">
             Tap the + below to get started — no account needed
           </p>
         </div>
@@ -97,10 +97,10 @@ export default function HomePage() {
                 <feature.icon size={20} stroke={1.75} />
               </span>
               <div>
-                <p className="text-base font-semibold text-foreground">
+                <p className="text-sm font-semibold text-foreground">
                   {feature.title}
                 </p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   {feature.description}
                 </p>
               </div>
@@ -131,7 +131,7 @@ export default function HomePage() {
             className="w-full max-w-md rounded-t-[28px] bg-card p-6"
           >
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl text-foreground">About this app</h2>
+              <h2 className="text-lg text-foreground">About this app</h2>
               <button
                 onClick={() => setAboutOpen(false)}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-accent-foreground"
@@ -139,7 +139,7 @@ export default function HomePage() {
                 <IconX size={16} stroke={2} />
               </button>
             </div>
-            <p className="mt-3 text-base text-muted-foreground">
+            <p className="mt-3 text-sm text-muted-foreground">
               This app helps you split a bill with friends — scan a receipt,
               enter one manually, or split evenly, no sign-up required.
               Everything works right away as a guest.
