@@ -1,14 +1,44 @@
 "use node";
 
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { action } from "./_generated/server";
+import { components } from "./_generated/api";
+import { RateLimiter, HOUR, DAY } from "@convex-dev/rate-limiter";
+
+const rateLimiter = new RateLimiter(components.rateLimiter, {
+  // Soft per-browser throttle: keyed by a random id the client stores in
+  // localStorage. Not a real identity, so it's trivially reset by clearing
+  // storage — it only deters accidental loops and casual repeat taps.
+  scanPerBrowser: { kind: "token bucket", rate: 10, period: HOUR, capacity: 15 },
+  // Hard ceiling on total OpenAI spend regardless of how many browsers/keys
+  // are in play. This is the number that actually bounds worst-case cost.
+  scanGlobal: { kind: "fixed window", rate: 500, period: DAY },
+});
 
 export const parseReceipt = action({
   args: {
     imageUrl: v.string(),
+    browserId: v.string(),
   },
   handler: async (ctx, args) => {
-    const { imageUrl } = args;
+    const { imageUrl, browserId } = args;
+
+    const globalStatus = await rateLimiter.limit(ctx, "scanGlobal");
+    if (!globalStatus.ok) {
+      throw new ConvexError(
+        "This app is at capacity for today — please try again tomorrow.",
+      );
+    }
+
+    const browserStatus = await rateLimiter.limit(ctx, "scanPerBrowser", {
+      key: browserId,
+    });
+    if (!browserStatus.ok) {
+      throw new ConvexError(
+        "You've scanned a lot of receipts recently — please slow down and try again in a bit.",
+      );
+    }
+
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error("OPENAI_API_KEY not set");
 

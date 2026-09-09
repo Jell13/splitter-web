@@ -2,8 +2,15 @@
 
 import { afterEach, expect, test, vi } from "vitest";
 import { convexTest } from "convex-test";
+import { register as registerRateLimiter } from "@convex-dev/rate-limiter/test";
 import schema from "./schema";
 import { api } from "./_generated/api";
+
+function setupTest() {
+  const t = convexTest(schema, modules);
+  registerRateLimiter(t);
+  return t;
+}
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -38,9 +45,10 @@ test("test an open ai call", async () => {
     }),
   );
 
-  const t = convexTest(schema, modules);
+  const t = setupTest();
   const result = await t.action(api.receipts.parseReceipt, {
-    imageUrl: "https://example.com/receipt.jpg"
+    imageUrl: "https://example.com/receipt.jpg",
+    browserId: "test-browser",
   });
 
   expect(result.description).toBe("In n Out");
@@ -57,8 +65,8 @@ test("throws when the OpenAI request itself fails", async () => {
         }) as unknown as Response)
     )
 
-    const t = convexTest(schema, modules);
-    await expect(t.action(api.receipts.parseReceipt, { imageUrl: "https://example.com/x.jpg"})).rejects.toThrow("OpenAI API error");
+    const t = setupTest();
+    await expect(t.action(api.receipts.parseReceipt, { imageUrl: "https://example.com/x.jpg", browserId: "test-browser"})).rejects.toThrow("OpenAI API error");
 })
 
 test("Test OpenAI not returning normal JSON", async () => {
@@ -66,7 +74,7 @@ test("Test OpenAI not returning normal JSON", async () => {
     testFakeOpenAI("Not an official json");
 
 
-    const t = convexTest(schema, modules);
-    const promise = t.action(api.receipts.parseReceipt, {imageUrl: "https://example.com/x.jpg"})
+    const t = setupTest();
+    const promise = t.action(api.receipts.parseReceipt, {imageUrl: "https://example.com/x.jpg", browserId: "test-browser"})
     await expect(promise).rejects.toThrow("Not an official JSON being returned");
 })

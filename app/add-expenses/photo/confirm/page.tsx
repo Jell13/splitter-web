@@ -9,8 +9,10 @@ import {
   IconReceipt,
 } from "@tabler/icons-react";
 import { useAction, useMutation } from "convex/react";
+import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
 import { usePhotoStore } from "@/app/stores/photo-upload";
+import { getBrowserId } from "@/app/lib/browser-id";
 import { toast } from "sonner";
 
 function PhotoConfirmPageInner() {
@@ -119,7 +121,10 @@ function PhotoConfirmPageInner() {
       const { url } = await saveReceiptImage({ storageId });
       setImageUrl(url);
 
-      const parsed = await parseReceipt({ imageUrl: url });
+      const parsed = await parseReceipt({
+        imageUrl: url,
+        browserId: getBrowserId(),
+      });
 
       setDescription(parsed.description);
       setSubtotal(parsed.subtotal);
@@ -139,7 +144,11 @@ function PhotoConfirmPageInner() {
       router.push("/add-expenses/photo/review");
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Couldn't scan that receipt — try again");
+      const message =
+        error instanceof ConvexError && typeof error.data === "string"
+          ? error.data
+          : "Couldn't scan that receipt — try again";
+      toast.error(message);
       setIsScanning(false);
     }
   };
