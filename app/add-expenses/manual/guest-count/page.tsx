@@ -34,12 +34,12 @@ export default function GuestCountPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className="px-5 pt-2">
-        <h1 className="text-[18px]">Split evenly</h1>
+        <h1 className="text-2xl">Split evenly</h1>
         <p className="mt-1 text-[13px] text-muted-foreground">Step 2 of 4</p>
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center px-5">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xl font-semibold text-foreground">
           How many people are splitting the bill?
         </p>
 

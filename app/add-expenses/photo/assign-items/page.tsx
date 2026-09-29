@@ -98,8 +98,14 @@ export default function AssignItemsPage() {
       }}
     >
       <div className="shrink-0 px-5 pt-2">
-        <h1 className="text-xl">Assign items</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-2xl">Assign items</h1>
+        <p
+          className={`mt-2 text-xl font-semibold transition ${
+            selectedIds.length === 0
+              ? "text-foreground"
+              : "rounded-control bg-primary/10 px-3 py-2 text-primary"
+          }`}
+        >
           {selectedIds.length === 0
             ? "Tap a name below, then tap their items"
             : "Now tap every item that belongs to them"}
