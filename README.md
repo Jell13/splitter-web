@@ -204,8 +204,6 @@ CLERK_SECRET_KEY=
 
 ```bash
 OPENAI_API_KEY=
-CLERK_WEBHOOK_SECRET=
-CLERK_JWT_ISSUER_DOMAIN=
 ```
 
 > The Clerk webhook endpoint must be registered as a **relative path** (e.g. `/clerk-webhook`), not the full deployment URL — Convex's `http.ts` router matches on the path only.
