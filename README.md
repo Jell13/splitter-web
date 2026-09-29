@@ -1,4 +1,4 @@
-# Split-it
+# Split-It-Ez
 
 A mobile-first bill-splitting app that lets you scan a receipt, snap a photo, or enter a bill manually — then split it fairly by assigning individual items to the people who ordered them, with tax and tip distributed proportionally.
 
