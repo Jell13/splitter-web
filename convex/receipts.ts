@@ -73,6 +73,7 @@ Rules:
       },
       body: JSON.stringify({
         model: "gpt-5.6-luna",
+        reasoning_effort: "none",
         messages: [
           {
             role: "user",
