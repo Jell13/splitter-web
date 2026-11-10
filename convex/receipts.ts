@@ -72,8 +72,8 @@ Rules:
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-5.6-luna",
-        reasoning_effort: "none",
+        model: "gpt-6-luna",
+        reasoning_effort: "low",
         messages: [
           {
             role: "user",
