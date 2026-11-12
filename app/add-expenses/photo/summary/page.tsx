@@ -44,11 +44,11 @@ export default function PhotoSummaryPage() {
         ? `${description} — Total: ${formatMoney(total)}`
         : `Total: ${formatMoney(total)}`,
       "",
-      ...ordered.map((p) => {
-        const who = p.isSelf ? `${p.name} (you)` : p.name;
-        const what = itemsFor(p.localId).join(", ");
-        return `${who}: ${formatMoney(p.amount)}${what ? ` — ${what}` : ""}`;
-      }),
+      // Just names and amounts — easy to read in a group chat.
+      ...ordered.map(
+        (p) =>
+          `${p.isSelf ? `${p.name} (you)` : p.name}: ${formatMoney(p.amount)}`,
+      ),
     ];
     return lines.join("\n");
   }
