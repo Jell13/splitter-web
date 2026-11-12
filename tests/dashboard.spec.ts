@@ -9,9 +9,6 @@ const enterNameAndContinue = async (page: Page) => {
 const routeToManual = async (page: Page) => {
     await enterNameAndContinue(page);
 
-    const addButton = page.getByRole("button", { name: "Add expense"});
-    await addButton.click();
-
     const manualButton = page.getByRole("button", { name: "Enter manually" });
     await manualButton.click();
 }
@@ -36,10 +33,6 @@ test("User can input their name into the input box to know what to call them", a
 test("User can navigate to the add screens", async ({ page }) => {
   await page.goto("/");
   await enterNameAndContinue(page);
-
-  const addButton = page.getByRole("button", { name: "Add expense" });
-  await expect(addButton).toBeVisible();
-  await addButton.click();
 
   await expect(
     page.getByRole("button", { name: "Scan receipt" }),

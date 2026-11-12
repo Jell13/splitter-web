@@ -4,6 +4,7 @@ import { usePhotoStore } from "@/app/stores/photo-upload";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { formatMoney, sanitizeAmount, toAmount } from "@/app/lib/split";
 
 export default function PhotoReviewPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function PhotoReviewPage() {
   const tip = usePhotoStore((state) => state.tip);
   const items = usePhotoStore((state) => state.items);
   const imageUrl = usePhotoStore((state) => state.imageUrl);
+  const scannedSubtotal = usePhotoStore((state) => state.scannedSubtotal);
   const hasHydrated = usePhotoStore((state) => state.hasHydrated);
 
   const [isViewingImage, setIsViewingImage] = useState(false);
@@ -37,14 +39,16 @@ export default function PhotoReviewPage() {
   const [newItemId, setNewItemId] = useState<string | null>(null);
 
   const handleEditItemName = (id: string, name: string) => {
-    setEditableItems((prev: any) =>
-      prev.map((item: any) => (item.id === id ? { ...item, name } : item)),
+    setEditableItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, name } : item)),
     );
   };
 
   const handleEditItemPrice = (id: string, price: string) => {
-    setEditableItems((prev: any) =>
-      prev.map((item: any) => (item.id === id ? { ...item, price } : item)),
+    setEditableItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, price: sanitizeAmount(price) } : item,
+      ),
     );
   };
 
@@ -58,7 +62,7 @@ export default function PhotoReviewPage() {
         ? crypto.randomUUID()
         : `item-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-    setEditableItems((prev: any) => [
+    setEditableItems((prev) => [
       ...prev,
       { id, name: "", price: "", assignedUserIds: [] },
     ]);
@@ -66,26 +70,35 @@ export default function PhotoReviewPage() {
   };
 
   const derivedSubtotal = editableItems.reduce(
-    (sum: number, item: any) => sum + (Number(item.price) || 0),
+    (sum: number, item) => sum + toAmount(item.price),
     0,
   );
 
   const handleContinue = () => {
     setSubtotal(derivedSubtotal);
     setDescription(userInput.description);
-    setTax(Number(userInput.tax) || 0);
-    setTip(Number(userInput.tip) || 0);
-    setItems(editableItems.map((item: any) => ({ ...item, price: Number(item.price) || 0 })));
+    setTax(toAmount(userInput.tax));
+    setTip(toAmount(userInput.tip));
+    setItems(
+      editableItems
+        // Drop blank rows the user added but never filled in.
+        .filter((item) => item.name.trim() !== "" || toAmount(item.price) > 0)
+        .map((item) => ({
+          ...item,
+          name: item.name.trim() || "Item",
+          price: toAmount(item.price),
+        })),
+    );
 
-    router.push("/add-expenses/photo/assign-items");
+    router.push("/add-expenses/photo/people");
   };
 
   useEffect(() => {
     if (hasHydrated) {
       setUserInput({
         description,
-        tax: String(tax),
-        tip: String(tip),
+        tax: tax === 0 ? "" : String(tax),
+        tip: tip === 0 ? "" : String(tip),
       });
 
       setEditableItems(
@@ -98,14 +111,20 @@ export default function PhotoReviewPage() {
     return null;
   }
 
-  const total = derivedSubtotal + (Number(userInput.tax) || 0) + (Number(userInput.tip) || 0);
+  const total = derivedSubtotal + toAmount(userInput.tax) + toAmount(userInput.tip);
+  // Flag when the items don't add up to what the receipt itself says —
+  // usually a misread price or a missed line.
+  const subtotalGap =
+    scannedSubtotal > 0
+      ? Math.round((scannedSubtotal - derivedSubtotal) * 100) / 100
+      : 0;
 
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="px-5 pt-2">
         <h1 className="text-2xl">Review scan</h1>
-        <p className="mt-1 text-xl font-semibold text-foreground">
-          Double check we read this right
+        <p className="mt-1 text-base text-muted-foreground">
+          Step 1 of 3 · Double check we read this right
         </p>
       </div>
 
@@ -138,7 +157,7 @@ export default function PhotoReviewPage() {
                 setUserInput({ ...userInput, description: e.target.value })
               }
               placeholder="Where was this?"
-              className="w-full rounded-control border border-border bg-card px-4 py-3 text-xl font-semibold text-foreground outline-none placeholder:text-muted-foreground"
+              className="w-full rounded-control border border-border bg-card px-4 py-3 text-base text-foreground outline-none placeholder:text-muted-foreground"
             />
           </div>
           <div className="rounded-card bg-card p-4">
@@ -147,7 +166,7 @@ export default function PhotoReviewPage() {
                 No items yet — add one below, or go back and rescan
               </p>
             ) : (
-              editableItems.map((item: any) => (
+              editableItems.map((item) => (
                 <div
                   key={item.id}
                   className="flex items-center gap-3 border-t border-border py-2.5 first:border-t-0"
@@ -169,7 +188,7 @@ export default function PhotoReviewPage() {
                         inputMode="decimal"
                         placeholder="0.00"
                         onChange={(e) => handleEditItemPrice(item.id, e.target.value)}
-                        className="w-14 border-none bg-transparent text-right text-base text-foreground outline-none placeholder:text-muted-foreground"
+                        className="w-16 border-none bg-transparent text-right text-base text-foreground outline-none placeholder:text-muted-foreground"
                       />
                     </div>
                     <button
@@ -195,11 +214,30 @@ export default function PhotoReviewPage() {
             </button>
           </div>
 
+          {subtotalGap !== 0 && (
+            <div
+              role="alert"
+              className="rounded-card bg-warning-soft px-4 py-3 text-sm text-warning-foreground"
+            >
+              Items add up to{" "}
+              <span className="tabular-amount font-semibold">
+                {formatMoney(derivedSubtotal)}
+              </span>
+              , but the receipt says{" "}
+              <span className="tabular-amount font-semibold">
+                {formatMoney(scannedSubtotal)}
+              </span>{" "}
+              ({subtotalGap > 0 ? "missing" : "over by"}{" "}
+              {formatMoney(Math.abs(subtotalGap))}). Check the prices against
+              the receipt.
+            </div>
+          )}
+
           <div className="rounded-card bg-card p-4">
             <div className="flex items-center justify-between py-2">
               <span className="text-base text-muted-foreground">Subtotal</span>
               <span className="tabular-amount text-base text-foreground">
-                ${derivedSubtotal.toFixed(2)}
+                {formatMoney(derivedSubtotal)}
               </span>
             </div>
             <div className="flex items-center justify-between border-t border-border py-2">
@@ -208,10 +246,12 @@ export default function PhotoReviewPage() {
                 <span className="text-base text-muted-foreground">$</span>
                 <input
                   type="text"
-                  className="w-16 border-none bg-transparent text-right text-base text-foreground outline-none"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  className="w-20 border-none bg-transparent text-right text-base text-foreground outline-none placeholder:text-muted-foreground"
                   value={userInput.tax}
                   onChange={(e) =>
-                    setUserInput({ ...userInput, tax: e.target.value })
+                    setUserInput({ ...userInput, tax: sanitizeAmount(e.target.value) })
                   }
                 />
               </div>
@@ -222,10 +262,12 @@ export default function PhotoReviewPage() {
                 <span className="text-base text-muted-foreground">$</span>
                 <input
                   type="text"
-                  className="w-16 border-none bg-transparent text-right text-base text-foreground outline-none"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  className="w-20 border-none bg-transparent text-right text-base text-foreground outline-none placeholder:text-muted-foreground"
                   value={userInput.tip}
                   onChange={(e) =>
-                    setUserInput({ ...userInput, tip: e.target.value })
+                    setUserInput({ ...userInput, tip: sanitizeAmount(e.target.value) })
                   }
                 />
               </div>
@@ -238,7 +280,7 @@ export default function PhotoReviewPage() {
                 Total
               </span>
               <span className="tabular-amount text-[30px] text-primary-foreground">
-                ${total.toFixed(2)}
+                {formatMoney(total)}
               </span>
             </div>
           </div>
@@ -248,7 +290,8 @@ export default function PhotoReviewPage() {
       <div className="shrink-0 px-5 pb-8 pt-4">
         <button
           onClick={handleContinue}
-          className="w-full rounded-control bg-primary py-3.5 text-base font-semibold text-primary-foreground"
+          disabled={derivedSubtotal <= 0}
+          className="w-full rounded-control bg-primary py-3.5 text-base font-semibold text-primary-foreground disabled:opacity-50"
         >
           Looks good
         </button>

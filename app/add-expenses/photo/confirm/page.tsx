@@ -32,6 +32,9 @@ function PhotoConfirmPageInner() {
   const setImageUrl = usePhotoStore((state) => state.setImageUrl);
   const setDescription = usePhotoStore((state) => state.setDescription);
   const setSubtotal = usePhotoStore((state) => state.setSubtotal);
+  const setScannedSubtotal = usePhotoStore(
+    (state) => state.setScannedSubtotal,
+  );
   const setTip = usePhotoStore((state) => state.setTip);
   const setTax = usePhotoStore((state) => state.setTax);
   const setItems = usePhotoStore((state) => state.setItems);
@@ -128,6 +131,7 @@ function PhotoConfirmPageInner() {
 
       setDescription(parsed.description);
       setSubtotal(parsed.subtotal);
+      setScannedSubtotal(Number(parsed.subtotal) || 0);
       setTax(parsed.tax);
       setTip(parsed.tip);
 
@@ -168,7 +172,7 @@ function PhotoConfirmPageInner() {
         <h1 className="text-2xl">{isCameraMode ? "Scan" : "Photo"}</h1>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-6">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-6">
         {previewUrl ? (
           <img
             src={previewUrl}

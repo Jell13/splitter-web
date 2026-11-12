@@ -3,76 +3,64 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
+import { toast } from "sonner";
 import { usePhotoStore } from "@/app/stores/photo-upload";
+import { computeItemShares, copyToClipboard, formatMoney } from "@/app/lib/split";
 
 export default function PhotoSummaryPage() {
   const router = useRouter();
 
   const description = usePhotoStore((state) => state.description);
-  const subtotal = usePhotoStore((state) => state.subtotal);
   const tax = usePhotoStore((state) => state.tax);
   const tip = usePhotoStore((state) => state.tip);
   const items = usePhotoStore((state) => state.items);
   const participants = usePhotoStore((state) => state.participants);
+  const hasHydrated = usePhotoStore((state) => state.hasHydrated);
   const reset = usePhotoStore((state) => state.reset);
 
   const [justCopied, setJustCopied] = useState(false);
 
-  const total = subtotal + tax + tip;
+  if (!hasHydrated) return null;
 
-  const personSubtotal: Record<string, number> = {};
-  participants.forEach((person) => (personSubtotal[person.localId] = 0));
+  const total = items.reduce((s, i) => s + i.price, 0) + tax + tip;
+  const { shares } = computeItemShares(items, participants, tax, tip);
+  // You first, then everyone else.
+  const ordered = [...shares].sort(
+    (a, b) => Number(!!b.isSelf) - Number(!!a.isSelf),
+  );
 
-  items.forEach((item) => {
-    const assignedCount = item.assignedUserIds.length;
-    if (assignedCount === 0) return;
-    const perPersonPrice = item.price / assignedCount;
-    item.assignedUserIds.forEach((localId) => {
-      personSubtotal[localId] = (personSubtotal[localId] || 0) + perPersonPrice;
-    });
-  });
-
-  // Everyone's share, including the creator — used for the full copy breakdown.
-  const allShares = participants.map((p) => {
-    const perPersonTotal = personSubtotal[p.localId] || 0;
-    const proportionalTaxTip =
-      subtotal > 0 ? (perPersonTotal / subtotal) * (tax + tip) : 0;
-    return {
-      ...p,
-      amount: perPersonTotal + proportionalTaxTip,
-    };
-  });
-
-  // Only show people other than yourself on screen — you paid, they owe you.
-  const shares = allShares.filter((p) => !p.isSelf);
+  const itemsFor = (localId: string) =>
+    items
+      .filter((item) => item.assignedUserIds.includes(localId))
+      .map((item) =>
+        item.assignedUserIds.length > 1
+          ? `${item.name} (1/${item.assignedUserIds.length})`
+          : item.name,
+      );
 
   function buildShareText() {
-    // Creator first, so whoever reads the message immediately sees what
-    // the person who paid is on the hook for too.
-    const sortedShares = [...allShares].sort(
-      (a, b) => Number(b.isSelf) - Number(a.isSelf),
-    );
-
     const lines = [
       description
-        ? `${description} — Total: $${total.toFixed(2)}`
-        : `Total: $${total.toFixed(2)}`,
+        ? `${description} — Total: ${formatMoney(total)}`
+        : `Total: ${formatMoney(total)}`,
       "",
-      "Full breakdown:",
-      ...sortedShares.map((p) =>
-        p.isSelf
-          ? `${p.name} (you): $${p.amount.toFixed(2)}`
-          : `${p.name}: $${p.amount.toFixed(2)}`,
-      ),
+      ...ordered.map((p) => {
+        const who = p.isSelf ? `${p.name} (you)` : p.name;
+        const what = itemsFor(p.localId).join(", ");
+        return `${who}: ${formatMoney(p.amount)}${what ? ` — ${what}` : ""}`;
+      }),
     ];
     return lines.join("\n");
   }
 
   async function handleCopy() {
-    const text = buildShareText();
-    await navigator.clipboard.writeText(text);
-    setJustCopied(true);
-    setTimeout(() => setJustCopied(false), 2000);
+    try {
+      await copyToClipboard(buildShareText());
+      setJustCopied(true);
+      setTimeout(() => setJustCopied(false), 2000);
+    } catch {
+      toast.error("Couldn't copy — try again");
+    }
   }
 
   const handleDone = () => {
@@ -82,70 +70,77 @@ export default function PhotoSummaryPage() {
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <div className="shrink-0 flex flex-col items-center px-5 pt-8">
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success-soft text-success-foreground">
-          <IconCheck size={26} stroke={2} />
-        </span>
-        <p className="mt-4 text-2xl font-semibold text-foreground">
-          Split complete
-        </p>
-        {description && (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-        )}
-
-        <button
-          onClick={handleCopy}
-          className="mt-4 flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground"
-        >
-          {justCopied ? (
-            <>
-              <IconCheck size={16} stroke={2.25} className="text-success" />
-              Copied to clipboard
-            </>
-          ) : (
-            <>
-              <IconCopy size={16} stroke={1.75} />
-              Copy breakdown
-            </>
+      <div className="min-h-0 flex-1 overflow-y-auto px-5">
+        <div className="flex flex-col items-center pt-4 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success-soft text-success-foreground">
+            <IconCheck size={26} stroke={2} />
+          </span>
+          <p className="mt-4 text-2xl font-semibold text-foreground">
+            Split complete
+          </p>
+          {description && (
+            <p className="mt-1 text-base text-muted-foreground">
+              {description}
+            </p>
           )}
-        </button>
-      </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-8">
-        <div className="flex flex-col gap-4">
+          <button
+            onClick={handleCopy}
+            className="mt-4 flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground"
+          >
+            {justCopied ? (
+              <>
+                <IconCheck size={16} stroke={2.25} className="text-success" />
+                Copied to clipboard
+              </>
+            ) : (
+              <>
+                <IconCopy size={16} stroke={1.75} />
+                Copy breakdown
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4 pb-4">
           <div className="rounded-card bg-primary px-5 py-4">
             <div className="flex items-center justify-between">
               <span className="text-base font-medium text-primary-foreground/80">
                 Total
               </span>
               <span className="tabular-amount text-[30px] text-primary-foreground">
-                ${total.toFixed(2)}
+                {formatMoney(total)}
               </span>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            {shares.map((person) => (
-              <div
+          <ul className="flex flex-col gap-2">
+            {ordered.map((person) => (
+              <li
                 key={person.localId}
                 className="flex items-center gap-3 rounded-card bg-card px-4 py-3"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
                   {person.initials}
                 </span>
-                <span className="flex-1 text-base text-foreground">
-                  {person.name}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-base text-foreground">
+                    {person.isSelf ? `${person.name} (you)` : person.name}
+                  </span>
+                  <span className="block truncate text-sm text-muted-foreground">
+                    {itemsFor(person.localId).join(", ") || "Nothing"}
+                  </span>
                 </span>
-                <span className="tabular-amount rounded-full bg-success-soft px-3 py-1.5 text-sm text-success-foreground">
-                  ${person.amount.toFixed(2)}
+                <span className="tabular-amount shrink-0 rounded-full bg-accent px-3 py-1.5 text-sm font-semibold text-accent-foreground">
+                  {formatMoney(person.amount)}
                 </span>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
 
-      <div className="shrink-0 px-5 pb-8 pt-6">
+      <div className="shrink-0 px-5 pb-8 pt-4">
         <button
           onClick={handleDone}
           className="w-full rounded-control bg-primary py-3.5 text-base font-semibold text-primary-foreground"

@@ -52,4 +52,14 @@ describe("NameEntryPrompt", () => {
 
     expect(input.value).toBe("Alex");
   });
+
+  it("submits when pressing Enter", async () => {
+    const onSubmit = vi.fn();
+    const user = userEvent.setup();
+    render(<NameEntryPrompt onSubmit={onSubmit} />);
+
+    await user.type(screen.getByPlaceholderText("Your name"), "Jason{Enter}");
+
+    expect(onSubmit).toHaveBeenCalledWith("Jason");
+  });
 });

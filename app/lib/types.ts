@@ -1,7 +1,3 @@
-export interface PhotoConfirmationProps {
-    imageUrl: string;
-}
-
 export interface NameEntryPromptProp{
     onSubmit: (name : string) => void;
 }
@@ -45,6 +41,8 @@ export interface ReceiptItems{
 
 export interface PhotoBillState{
     subtotal: number;
+    /** Subtotal printed on the receipt, as read by the scanner. */
+    scannedSubtotal: number;
     description: string;
     imageUrl: string;
     tip: number;
@@ -55,6 +53,7 @@ export interface PhotoBillState{
     hasHydrated: boolean;
     setHasHydrated: (val: boolean) => void;
     setSubtotal: (subtotal : number) => void;
+    setScannedSubtotal: (subtotal : number) => void;
     setItems: (item : ReceiptItems[]) => void;
     setDescription: (description : string) => void;
     setImageUrl: (imageUrl : string) => void;
@@ -62,7 +61,8 @@ export interface PhotoBillState{
     setTax: (tax : number) => void;
     setGuestCount: (guestCount: number) => void;
     addParticipant: (name: string, initials: string) => void;
-    toggleItemAssignment: (itemId: string, name: string) => void;
+    toggleItemAssignment: (itemId: string, userId: string) => void;
+    setItemAssignees: (itemId: string, userIds: string[]) => void;
     ensureSelfParticipant: (name: string, initials: string) => void;
     removeParticipant: (localId: string) => void;
     reset: () => void;

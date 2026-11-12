@@ -2,9 +2,21 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Participant, PhotoBillState, ReceiptItems } from "../lib/types";
 
-const initialState = {
+const initialState: Pick<
+  PhotoBillState,
+  | "description"
+  | "subtotal"
+  | "scannedSubtotal"
+  | "tip"
+  | "tax"
+  | "imageUrl"
+  | "guestCount"
+  | "participants"
+  | "items"
+> = {
   description: "",
   subtotal: 0,
+  scannedSubtotal: 0,
   tip: 0,
   tax: 0,
   imageUrl: "",
@@ -21,6 +33,7 @@ export const usePhotoStore = create<PhotoBillState>()(
       setHasHydrated: (val) => set({ hasHydrated: val }),
       setDescription: (val: string) => set({ description: val }),
       setSubtotal: (val: number) => set({ subtotal: val }),
+      setScannedSubtotal: (val: number) => set({ scannedSubtotal: val }),
       setTip: (val: number) => set({ tip: val }),
       setTax: (val: number) => set({ tax: val }),
       setImageUrl: (val: string) => set({ imageUrl: val }),
@@ -60,22 +73,31 @@ export const usePhotoStore = create<PhotoBillState>()(
             initials,
             isSelf: true,
           };
-          return { participants: [...state.participants, newParticipant] };
+          // You always come first in the list.
+          return { participants: [newParticipant, ...state.participants] };
         }),
+      setItemAssignees: (itemId: string, userIds: string[]) =>
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === itemId ? { ...item, assignedUserIds: userIds } : item,
+          ),
+        })),
       removeParticipant: (localId: string) =>
         set((state) => {
           const person = state.participants.find((p) => p.localId === localId);
-          if (person?.isSelf) return state; // never remove yourself
+          if (!person || person.isSelf) return state; // never remove yourself
 
-          const isAssignedAnywhere = state.items.some((item) =>
-            item.assignedUserIds.includes(localId),
-          );
-          if (isAssignedAnywhere) return state; // refuse — still in use
-
+          // Removing someone also drops them from any items they were on.
           return {
             participants: state.participants.filter(
               (p) => p.localId !== localId,
             ),
+            items: state.items.map((item) => ({
+              ...item,
+              assignedUserIds: item.assignedUserIds.filter(
+                (id) => id !== localId,
+              ),
+            })),
           };
         }),
     }),

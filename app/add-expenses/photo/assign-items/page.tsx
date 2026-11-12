@@ -3,8 +3,14 @@
 import { usePhotoStore } from "@/app/stores/photo-upload";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { IconCheck, IconX, IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconX, IconTrash, IconUserPlus } from "@tabler/icons-react";
 import { useUserStore } from "@/app/stores/user-store";
+import {
+  computeItemShares,
+  formatMoney,
+  getInitials,
+  uniqueInitials,
+} from "@/app/lib/split";
 
 export default function AssignItemsPage() {
   const router = useRouter();
@@ -20,16 +26,18 @@ export default function AssignItemsPage() {
   );
   const addParticipant = usePhotoStore((state) => state.addParticipant);
   const removeParticipant = usePhotoStore((state) => state.removeParticipant);
+  const setItemAssignees = usePhotoStore((state) => state.setItemAssignees);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isAddingParticipant, setIsAddingParticipant] = useState(false);
   const [newName, setNewName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [pendingRemovalKey, setPendingRemovalKey] = useState<string | null>(
     null,
   );
 
   const handleContinue = () => {
-    router.push("/add-expenses/photo/final-review");
+    router.push("/add-expenses/photo/summary");
   };
 
   function toggleParticipantSelected(localId: string) {
@@ -43,7 +51,18 @@ export default function AssignItemsPage() {
   function handleItemTap(itemId: string) {
     setPendingRemovalKey(null);
     if (selectedIds.length === 0) return;
-    selectedIds.forEach((localId) => toggleItemAssignment(itemId, localId));
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    // With several people selected, toggling each one separately could
+    // turn "A" into "B" instead of "A + B". Instead: if everyone selected
+    // is already on the item, take them all off; otherwise add them all.
+    const allOn = selectedIds.every((id) => item.assignedUserIds.includes(id));
+    setItemAssignees(
+      itemId,
+      allOn
+        ? item.assignedUserIds.filter((id) => !selectedIds.includes(id))
+        : [...new Set([...item.assignedUserIds, ...selectedIds])],
+    );
   }
 
   function handleChipTap(itemId: string, localId: string) {
@@ -56,18 +75,20 @@ export default function AssignItemsPage() {
     }
   }
 
-  function getInitials(name: string): string {
-    const words = name.trim().split(/\s+/);
-    if (words.length === 1) {
-      return words[0].slice(0, 2).toUpperCase();
-    }
-    return (words[0][0] + words[1][0]).toUpperCase();
-  }
-
   function handleAddParticipant() {
     const trimmed = newName.trim();
     if (!trimmed) return;
-    addParticipant(trimmed, getInitials(trimmed));
+    if (
+      participants.some((p) => p.name.toLowerCase() === trimmed.toLowerCase())
+    ) {
+      setNameError(`${trimmed} is already in this split`);
+      return;
+    }
+    setNameError(null);
+    addParticipant(
+      trimmed,
+      uniqueInitials(trimmed, participants.map((p) => p.initials)),
+    );
     setNewName("");
     setIsAddingParticipant(false);
   }
@@ -81,13 +102,28 @@ export default function AssignItemsPage() {
     if (hasHydrated && name) {
       ensureSelfParticipant(name, getInitials(name));
     }
-  }, [hasHydrated, name]);
+  }, [hasHydrated, name, ensureSelfParticipant]);
 
   if (!hasHydrated) {
     return null;
   }
 
   const total = subtotal + tip + tax;
+  const { unassignedTotal, unassignedCount } = computeItemShares(
+    items,
+    participants,
+    tax,
+    tip,
+  );
+  const allAssigned = items.length > 0 && unassignedCount === 0;
+
+  // Gives every leftover item to the whole table.
+  function splitRestEvenly() {
+    const everyone = participants.map((p) => p.localId);
+    items
+      .filter((item) => !item.assignedUserIds.some((id) => everyone.includes(id)))
+      .forEach((item) => setItemAssignees(item.id, everyone));
+  }
 
   return (
     <div
@@ -98,7 +134,19 @@ export default function AssignItemsPage() {
       }}
     >
       <div className="shrink-0 px-5 pt-2">
-        <h1 className="text-2xl">Assign items</h1>
+        <div className="flex items-baseline justify-between">
+          <h1 className="text-2xl">Assign items</h1>
+          {/* <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push("/add-expenses/photo/people");
+            }}
+            className="flex items-center gap-1 text-sm font-semibold text-primary"
+          >
+            <IconUserPlus size={16} stroke={1.75} />
+            Edit people
+          </button> */}
+        </div>
         <p
           className={`mt-2 text-xl font-semibold transition ${
             selectedIds.length === 0
@@ -246,6 +294,7 @@ export default function AssignItemsPage() {
           })}
 
           <button
+            aria-label="Add person"
             onClick={(e) => {
               e.stopPropagation();
               setIsAddingParticipant(true);
@@ -260,16 +309,15 @@ export default function AssignItemsPage() {
               const selectedPerson = participants.find(
                 (p) => p.localId === selectedIds[0],
               );
-              const hasAssignments = items.some((item) =>
-                (item.assignedUserIds ?? []).includes(selectedIds[0]),
-              );
-              const canDelete =
-                selectedPerson && !selectedPerson.isSelf && !hasAssignments;
+              // Removing someone sends their items back to "unassigned",
+              // which the counter above Continue then flags.
+              const canDelete = selectedPerson && !selectedPerson.isSelf;
 
               if (!canDelete) return null;
 
               return (
                 <button
+                  aria-label={`Remove ${selectedPerson.name}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     removeParticipant(selectedIds[0]);
@@ -285,12 +333,35 @@ export default function AssignItemsPage() {
       </div>
 
       <div className="shrink-0 px-5 pb-8 pt-2">
+        {!allAssigned && items.length > 0 && (
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <p className="text-sm text-warning-foreground">
+              <span className="tabular-amount font-semibold">
+                {formatMoney(unassignedTotal)}
+              </span>{" "}
+              still unassigned ({unassignedCount}{" "}
+              {unassignedCount === 1 ? "item" : "items"})
+            </p>
+            {participants.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  splitRestEvenly();
+                }}
+                className="shrink-0 text-sm font-semibold text-primary"
+              >
+                Split rest evenly
+              </button>
+            )}
+          </div>
+        )}
         <button
           onClick={(e) => {
             e.stopPropagation();
             handleContinue();
           }}
-          className="w-full rounded-control bg-primary py-3.5 text-base font-semibold text-primary-foreground"
+          disabled={!allAssigned}
+          className="w-full rounded-control bg-primary py-3.5 text-base font-semibold text-primary-foreground disabled:opacity-50"
         >
           Continue
         </button>
@@ -310,7 +381,10 @@ export default function AssignItemsPage() {
             <input
               type="text"
               value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              onChange={(e) => {
+                setNewName(e.target.value);
+                setNameError(null);
+              }}
               placeholder="Their name"
               autoFocus
               onKeyDown={(e) => {
@@ -319,10 +393,17 @@ export default function AssignItemsPage() {
               className="mt-4 w-full rounded-control border border-border bg-background px-4 py-3 text-base text-foreground outline-none placeholder:text-muted-foreground"
             />
 
+            {nameError && (
+              <p role="alert" className="mt-2 text-sm text-destructive">
+                {nameError}
+              </p>
+            )}
+
             <div className="mt-4 flex gap-2">
               <button
                 onClick={() => {
                   setIsAddingParticipant(false);
+                  setNameError(null);
                   setNewName("");
                 }}
                 className="flex-1 rounded-control bg-accent py-3 text-base font-semibold text-accent-foreground"
